@@ -1,5 +1,3 @@
-import * as THREE from 'three';
-
 export class ScoreSystem {
     private score: number = 0;
     private hiScore: number = 0;
