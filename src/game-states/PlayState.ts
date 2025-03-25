@@ -12,6 +12,7 @@ import { BulletSystem } from '../systems/BulletSystem';
 import { ExplosionSystem } from '../systems/ExplosionSystem';
 import { CollisionSystem } from '../systems/CollisionSystem';
 import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
+import { SmokeSystem } from '../systems/SmokeSystem';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -26,6 +27,7 @@ export class PlayState implements GameState {
     private bulletSystem: BulletSystem;
     private explosionSystem: ExplosionSystem;
     private collisionSystem: CollisionSystem;
+    private smokeSystem: SmokeSystem;
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -46,11 +48,13 @@ export class PlayState implements GameState {
         this.bulletSystem = new BulletSystem(this.scene, this.audioSystem);
         this.explosionSystem = new ExplosionSystem(this.scene, this.audioSystem);
         this.collisionSystem = new CollisionSystem(this.bulletSystem, this.explosionSystem);
+        this.smokeSystem = new SmokeSystem(this.scene);
 
         // Create player 1 with a blue plane model
         const planeModel1 = new PlaneModel(0x4169e1);
         const player1 = new Player(planeModel1, 0);
         player1.setBulletSystem(this.bulletSystem);
+        player1.setSmokeSystem(this.smokeSystem);
         player1.getGroup().position.set(-5, 0, 0); // Position on the left
         scene.add(player1.getGroup());
         this.players.push(player1);
@@ -66,6 +70,7 @@ export class PlayState implements GameState {
         const planeModel2 = new PlaneModel(0xff0000);
         const player2 = new Player(planeModel2, 1);
         player2.setBulletSystem(this.bulletSystem);
+        player2.setSmokeSystem(this.smokeSystem);
         player2.getGroup().position.set(5, 0, 0); // Position on the right
         scene.add(player2.getGroup());
         this.players.push(player2);
@@ -81,6 +86,7 @@ export class PlayState implements GameState {
         const planeModel3 = new PlaneModel(0x800080);
         const player3 = new Player(planeModel3, 2);
         player3.setBulletSystem(this.bulletSystem);
+        player3.setSmokeSystem(this.smokeSystem);
         player3.getGroup().position.set(0, -5, 0); // Position at bottom middle
         scene.add(player3.getGroup());
         this.players.push(player3);
@@ -275,6 +281,7 @@ export class PlayState implements GameState {
         this.bulletSystem.update(deltaTime);
         this.explosionSystem.update(deltaTime);
         this.collisionSystem.update();
+        this.smokeSystem.update(deltaTime);
 
         this.keyboardHandler.update();
         this.screenControlHandler.update();

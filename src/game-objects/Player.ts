@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { PlaneModel } from '../assets/game-models/PlaneModel';
 import { BulletSystem } from '../systems/BulletSystem';
+import { SmokeSystem } from '../systems/SmokeSystem';
 
 export class Player {
     private model: PlaneModel;
@@ -8,10 +9,11 @@ export class Player {
     private moveSpeed: number = 5; // Units per second
     private rotationSpeed: number = 3; // Radians per second
     private bulletSystem: BulletSystem | null = null;
+    private smokeSystem: SmokeSystem | null = null;
     private lastSpacePress: number = 0;
     private fireRate: number = 0.25; // Minimum time between shots in seconds
     private initialPosition: THREE.Vector3;
-    private lives: number = 3;
+    private energy: number = 3;
     private isGameOver: boolean = false;
     private isFlashing: boolean = false;
     private flashStartTime: number = 0;
@@ -19,6 +21,8 @@ export class Player {
     private originalColor: number = 0x4169e1;
     private flashColor: number = 0xffffff;
     private playerNum: number;
+    private smokeTimer: number = 0;
+    private smokeInterval: number = 0.1; // Spawn smoke every 0.1 seconds
 
     constructor(model: PlaneModel, playerNum: number) {
         this.model = model;
@@ -31,6 +35,10 @@ export class Player {
 
     public setBulletSystem(bulletSystem: BulletSystem): void {
         this.bulletSystem = bulletSystem;
+    }
+
+    public setSmokeSystem(smokeSystem: SmokeSystem): void {
+        this.smokeSystem = smokeSystem;
     }
 
     public update(deltaTime: number): void {
@@ -54,6 +62,17 @@ export class Player {
                 // Alternate between flash color and original color
                 const isWhite = Math.floor(elapsed / 50) % 2 === 0;
                 this.model.setColor(isWhite ? this.flashColor : this.originalColor);
+            }
+        }
+
+        // Handle smoke effect when energy is low
+        if (this.energy === 1 && this.smokeSystem) {
+            this.smokeTimer += deltaTime;
+            if (this.smokeTimer >= this.smokeInterval) {
+                this.smokeTimer = 0;
+                // Spawn smoke slightly behind the player
+                const smokePosition = this.group.position.clone().sub(forward.multiplyScalar(1.5));
+                this.smokeSystem.spawnSmoke(smokePosition, 0x808080);
             }
         }
     }
@@ -110,27 +129,27 @@ export class Player {
         }
     }
 
-    public getLives(): number {
-        return this.lives;
+    public getEnergy(): number {
+        return this.energy;
     }
 
     public isDead(): boolean {
-        return this.lives <= 0;
+        return this.energy <= 0;
     }
 
     public takeDamage(): void {
-        this.lives--;
+        this.energy--;
         this.isFlashing = true;
         this.flashStartTime = Date.now();
         
-        if (this.lives <= 0) {
+        if (this.energy <= 0) {
             this.isGameOver = true;
             this.hideShip();
         }
     }
 
     public reset(): void {
-        this.lives = 3;
+        this.energy = 3;
         this.isGameOver = false;
         this.isFlashing = false;
         this.model.setColor(this.originalColor);
