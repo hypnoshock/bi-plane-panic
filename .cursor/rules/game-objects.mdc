@@ -6,7 +6,7 @@ alwaysApply: true
 
 # Your rule content
 
-- game objects are found in `src-game-objects`
+- game objects are found in `src/game-objects`
 - anything that is in the game scene is represented as a game object
 - a game object's visual representation is in a form of a game model which are classes that utilise three.js. All models are found in `src/assets/game-models`
 - only a game object can change the position, rotation and appearance of its model. Code outside the game object must call functions on the game object to alter how the model is displayed e.g. position, rotation and material. This serves as a layer of abstraction for three.js

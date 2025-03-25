@@ -6,6 +6,7 @@ export class Player {
     private model: PlaneModel;
     private group: THREE.Group;
     private moveSpeed: number = 5; // Units per second
+    private rotationSpeed: number = 3; // Radians per second
     private bulletSystem: BulletSystem | null = null;
     private lastSpacePress: number = 0;
     private fireRate: number = 0.25; // Minimum time between shots in seconds
@@ -34,6 +35,11 @@ export class Player {
         if (this.isGameOver) return;
         this.model.update();
 
+        // Move forward in the direction the plane is facing
+        const forward = new THREE.Vector3(1, 0, 0);
+        forward.applyQuaternion(this.group.quaternion);
+        this.group.position.add(forward.multiplyScalar(this.moveSpeed * deltaTime));
+
         // Handle flash effect
         if (this.isFlashing) {
             const currentTime = Date.now();
@@ -60,22 +66,23 @@ export class Player {
 
     public resetPosition(): void {
         this.group.position.copy(this.initialPosition);
+        this.group.rotation.set(0, 0, 0);
     }
 
     public moveUp(deltaTime: number): void {
-        this.group.position.y += this.moveSpeed * deltaTime;
+        // Up/down movement removed as per new requirements
     }
 
     public moveDown(deltaTime: number): void {
-        this.group.position.y -= this.moveSpeed * deltaTime;
+        // Up/down movement removed as per new requirements
     }
 
     public moveLeft(deltaTime: number): void {
-        this.group.position.x -= this.moveSpeed * deltaTime;
+        this.group.rotation.z += this.rotationSpeed * deltaTime;
     }
 
     public moveRight(deltaTime: number): void {
-        this.group.position.x += this.moveSpeed * deltaTime;
+        this.group.rotation.z -= this.rotationSpeed * deltaTime;
     }
 
     public shoot(deltaTime: number): void {
@@ -84,15 +91,19 @@ export class Player {
         const currentTime = Date.now();
         if (currentTime - this.lastSpacePress >= this.fireRate * 1000) {
             const playerPosition = this.group.position;
-            // Spawn bullet in front of the ship (along X axis since ship is rotated 90 degrees around Y)
+            // Get the forward direction of the plane
+            const forward = new THREE.Vector3(1, 0, 0);
+            forward.applyQuaternion(this.group.quaternion);
+            
+            // Spawn bullet in front of the ship
             const bulletPosition = new THREE.Vector3(
-                playerPosition.x + 1.5, // Spawn 1.5 units in front of the ship
-                playerPosition.y,
-                playerPosition.z
+                playerPosition.x + forward.x * 1.5,
+                playerPosition.y + forward.y * 1.5,
+                playerPosition.z + forward.z * 1.5
             );
-            // Shoot to the right
-            const direction = new THREE.Vector3(1, 0, 0);
-            this.bulletSystem.spawnBullet(bulletPosition, direction, false);
+            
+            // Shoot in the direction the plane is facing
+            this.bulletSystem.spawnBullet(bulletPosition, forward, false);
             this.lastSpacePress = currentTime;
         }
     }

@@ -6,6 +6,9 @@ import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler
 import { GameStateManager } from './GameStateManager';
 import { MenuState } from './MenuState';
 import { AudioSystem } from '../systems/AudioSystem';
+import { Player } from '../game-objects/Player';
+import { PlaneModel } from '../assets/game-models/PlaneModel';
+import { BulletSystem } from '../systems/BulletSystem';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -14,14 +17,16 @@ export class PlayState implements GameState {
     private gameStateManager!: GameStateManager;
     private backgroundTexture: THREE.CanvasTexture | null = null;
     private audioSystem: AudioSystem;
-    private cube: THREE.Mesh;
+    private player: Player;
+    private bulletSystem: BulletSystem;
 
     // Input flags
     private inputFlags = {
         moveUp: false,
         moveDown: false,
         moveLeft: false,
-        moveRight: false
+        moveRight: false,
+        shoot: false
     };
 
     constructor(
@@ -31,15 +36,16 @@ export class PlayState implements GameState {
     ) {
         // Create audio system
         this.audioSystem = new AudioSystem();
+        this.bulletSystem = new BulletSystem(this.scene, this.audioSystem);
 
-        // Create cube
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        this.cube = new THREE.Mesh(geometry, material);
-        scene.add(this.cube);
+        // Create player with a blue plane model
+        const planeModel = new PlaneModel(0x4169e1);
+        this.player = new Player(planeModel);
+        this.player.setBulletSystem(this.bulletSystem);
+        scene.add(this.player.getGroup());
 
         // Position camera
-        camera.position.z = 5;
+        camera.position.z = 10;
     }
 
     private setupBackground(): void {
@@ -92,6 +98,9 @@ export class PlayState implements GameState {
             case 'right':
                 this.inputFlags.moveRight = isPress;
                 break;
+            case 'button1':
+                this.inputFlags.shoot = isPress;
+                break;
             case 'button2':
                 if (isPress) {
                     const menuState = new MenuState(this.scene, this.camera, this.renderer);
@@ -134,30 +143,33 @@ export class PlayState implements GameState {
         }
         this.scene.background = null;
 
-        // Remove cube
-        this.scene.remove(this.cube);
+        // Remove player
+        this.scene.remove(this.player.getGroup());
     }
 
     public update(deltaTime: number): void {
-        // Handle cube movement
-        const moveSpeed = 5 * deltaTime;
-        
+        // Handle player movement
         if (this.inputFlags.moveUp) {
-            this.cube.position.y += moveSpeed;
+            this.player.moveUp(deltaTime);
         }
         if (this.inputFlags.moveDown) {
-            this.cube.position.y -= moveSpeed;
+            this.player.moveDown(deltaTime);
         }
         if (this.inputFlags.moveLeft) {
-            this.cube.position.x -= moveSpeed;
+            this.player.moveLeft(deltaTime);
         }
         if (this.inputFlags.moveRight) {
-            this.cube.position.x += moveSpeed;
+            this.player.moveRight(deltaTime);
+        }
+        if (this.inputFlags.shoot) {
+            this.player.shoot(deltaTime);
         }
 
-        // Add some rotation for visual interest
-        this.cube.rotation.x += deltaTime;
-        this.cube.rotation.y += deltaTime;
+        // Update player
+        this.player.update(deltaTime);
+
+        // Update bullet system
+        this.bulletSystem.update(deltaTime);
 
         this.keyboardHandler.update();
         this.screenControlHandler.update();

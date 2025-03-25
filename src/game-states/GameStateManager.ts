@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import { GameState } from './GameState';
 import { KeyboardHandler } from '../systems/input-handlers/KeyboardHandler';
 import { ScreenControlHandler } from '../systems/input-handlers/ScreenControlHandler';

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export class Bullet {
+export class BulletModel {
     private mesh: THREE.Mesh;
 
     constructor() {
@@ -12,4 +12,4 @@ export class Bullet {
     public getMesh(): THREE.Mesh {
         return this.mesh;
     }
-} 
+}

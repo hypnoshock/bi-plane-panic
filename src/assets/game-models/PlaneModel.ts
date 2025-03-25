@@ -4,12 +4,12 @@ export class PlaneModel {
     private group: THREE.Group;
     private materials: THREE.MeshPhongMaterial[] = [];
 
-    constructor() {
+    constructor(color: THREE.ColorRepresentation) {
         this.group = new THREE.Group();
 
         // Create ship body (cylinder)
         const bodyGeometry = new THREE.CylinderGeometry(0.2, 0.2, 1, 32);
-        const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x4169e1 });
+        const bodyMaterial = new THREE.MeshPhongMaterial({ color });
         this.materials.push(bodyMaterial);
         const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
         body.rotation.x = Math.PI / 2; // Lay the cylinder on its side
@@ -17,7 +17,7 @@ export class PlaneModel {
 
         // Create nose cone
         const noseGeometry = new THREE.ConeGeometry(0.2, 0.5, 32);
-        const noseMaterial = new THREE.MeshPhongMaterial({ color: 0x4169e1 });
+        const noseMaterial = new THREE.MeshPhongMaterial({ color });
         this.materials.push(noseMaterial);
         const nose = new THREE.Mesh(noseGeometry, noseMaterial);
         nose.position.z = 0.75; // Position at the front of the body
@@ -27,7 +27,7 @@ export class PlaneModel {
 
         // Create wings
         const wingGeometry = new THREE.BoxGeometry(2, 0.1, 0.5);
-        const wingMaterial = new THREE.MeshPhongMaterial({ color: 0x4169e1 });
+        const wingMaterial = new THREE.MeshPhongMaterial({ color });
         this.materials.push(wingMaterial);
         const wing = new THREE.Mesh(wingGeometry, wingMaterial);
         wing.position.y = 0.5; // Position above the body
