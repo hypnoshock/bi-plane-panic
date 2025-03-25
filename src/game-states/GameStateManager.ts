@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { GameState } from './GameState';
-import { KeyboardHandler } from '../system/KeyboardHandler';
-import { ScreenControlHandler } from '../system/ScreenControlHandler';
-import { JoypadInputHandler } from '../system/JoypadInputHandler';
+import { KeyboardHandler } from '../systems/KeyboardHandler';
+import { ScreenControlHandler } from '../systems/ScreenControlHandler';
+import { JoypadInputHandler } from '../systems/JoypadInputHandler';
 
 export class GameStateManager {
     private currentState: GameState | null = null;

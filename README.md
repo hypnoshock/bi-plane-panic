@@ -1,57 +1,61 @@
-# Plane Panic - A vibe coding experiment 90% AI generated using Cursor
+# Game Template
 
-A thrilling space shooter game where you pilot a spaceship through waves of enemies while managing your energy and survival.
+This project serves as a template for creating 2D or 3D games using TypeScript and Three.js. It provides a basic structure and essential features to help you get started quickly.
 
-## Overview
+## Features
 
-Plane Panic is a modern space shooter game that combines classic arcade-style gameplay with contemporary visual effects and audio design. The game features smooth controls, dynamic enemy spawning, and engaging visual feedback through explosions and particle effects.
+- **Menu System**: A simple menu with options to start the game and toggle fullscreen.
+- **Input Handling**: Supports keyboard, touch controls, and gamepad input.
+- **Audio System**: Includes background music and sound effects for bullets and explosions.
+- **Game States**: Easily switch between different game states (e.g., menu, play).
+- **Mobile Support**: Detects mobile devices and adjusts controls accordingly.
+- **Basic Gameplay**: A red cube that can be controlled using the input handlers.
 
-## Game Systems
+## Getting Started
 
-### Core Systems
-- **Player System**: Control a responsive spaceship with smooth movement and shooting mechanics
-- **Bullet System**: Manage projectiles with collision detection and damage handling
-- **Enemy Spawner**: Dynamic enemy generation with increasing difficulty
-- **Explosion System**: Visual feedback for destroyed enemies and player death
-- **Cloud Background**: Dynamic background effects for enhanced immersion
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/yourusername/game-template.git
+   cd game-template
+   ```
 
-### Input Systems
-- **Keyboard Handler**: Traditional keyboard controls for desktop play
-- **Screen Control Handler**: Touch controls for mobile devices
-- **Joypad Handler**: Gamepad/controller support for enhanced gameplay experience
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-### Audio System
-- Background music and sound effects for enhanced gameplay experience
-- Dynamic audio feedback for shooting, explosions, and game events
+3. **Run the Development Server**:
+   ```bash
+   npm start
+   ```
 
-## Gameplay
+4. **Open in Browser**:
+   Navigate to `http://localhost:3000` in your web browser.
 
-### Controls
-- **Movement**: Use arrow keys, touch controls, or gamepad sticks to navigate your spaceship
-- **Shooting**: Press spacebar, tap, or use gamepad button to shoot at enemies
-- **Menu Navigation**: Use the B button or gamepad button to return to the main menu
-- **Fullscreen**: Toggle fullscreen mode from the main menu
+## Project Structure
 
-### Objectives
-- Survive waves of incoming enemies
-- Manage your energy (lives) to stay in the game
-- Achieve the highest score possible
+- `src/`: Contains the source code for the game.
+  - `game-states/`: Contains the game state classes (e.g., `MenuState`, `PlayState`).
+  - `system/`: Contains utility classes (e.g., `AudioSystem`, `KeyboardHandler`).
+  - `game-models/`: Contains models for game objects (e.g., `Bullet`, `Spaceship`).
+  - `game-objects/`: Contains classes for game objects (e.g., `Player`, `Enemy`).
+- `index.html`: The main HTML file that loads the game.
+- `style.css`: The CSS file for styling the game.
 
-### Features
-- Energy-based health system
-- Dynamic difficulty progression
-- Visual feedback for all actions
-- Smooth, responsive controls
-- Modern visual effects and particle systems
+## Customization
 
-## Technical Details
+To create a new game using this template:
 
-The game is built using:
-- Three.js for 3D graphics rendering
-- Custom game state management system
-- Modular architecture for easy expansion
-- Responsive design for both desktop and mobile play
+1. **Create a New GameState**: Add a new class in the `game-states/` directory for your game logic.
+2. **Modify the Menu**: Update the `MenuState` to include options relevant to your game.
+3. **Add Game Objects**: Create new models and objects in the `game-models/` and `game-objects/` directories.
+4. **Implement Game Logic**: Use the existing input and audio systems to implement your game mechanics.
 
-## Credits
+## License
 
-90% of the code, including graphics and sound, was created by the developer. The game uses Three.js for 3D rendering and various custom systems for gameplay mechanics. 
+This project is licensed under the MIT License. Feel free to use and modify it for your own projects.
+
+## Acknowledgments
+
+- [Three.js](https://threejs.org/) - The 3D library used for rendering.
+- [TypeScript](https://www.typescriptlang.org/) - The programming language used for development. 

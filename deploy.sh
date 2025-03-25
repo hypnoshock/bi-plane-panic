@@ -1,6 +1,7 @@
 #!/bin/bash
-rsync -av dist/ ~/Projects/jimmy/hypnoshock.github.io/template
-cd ~/Projects/jimmy/hypnoshock.github.io/template
+mkdir -p ~/Projects/jimmy/hypnoshock.github.io/bi-planes
+rsync -av dist/ ~/Projects/jimmy/hypnoshock.github.io/bi-planes
+cd ~/Projects/jimmy/hypnoshock.github.io/bi-planes
 git add -A
-git commit -m "update to template"
+git commit -m "update to bi-planes"
 git push 

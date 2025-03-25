@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { GameState } from './GameState';
-import { KeyboardHandler } from '../system/KeyboardHandler';
-import { ScreenControlHandler } from '../system/ScreenControlHandler';
-import { JoypadInputHandler } from '../system/JoypadInputHandler';
+import { KeyboardHandler } from '../systems/KeyboardHandler';
+import { ScreenControlHandler } from '../systems/ScreenControlHandler';
+import { JoypadInputHandler } from '../systems/JoypadInputHandler';
 import { GameStateManager } from './GameStateManager';
 import { MenuState } from './MenuState';
-import { AudioSystem } from '../system/AudioSystem';
+import { AudioSystem } from '../systems/AudioSystem';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;

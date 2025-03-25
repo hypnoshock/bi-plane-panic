@@ -2,10 +2,10 @@ import { GameState } from './GameState';
 import * as THREE from 'three';
 import { GameStateManager } from './GameStateManager';
 import { PlayState } from './PlayState';
-import { KeyboardHandler } from '../system/KeyboardHandler';
-import { AudioSystem } from '../system/AudioSystem';
-import { ScreenControlHandler } from '../system/ScreenControlHandler';
-import { JoypadInputHandler } from '../system/JoypadInputHandler';
+import { KeyboardHandler } from '../systems/KeyboardHandler';
+import { AudioSystem } from '../systems/AudioSystem';
+import { ScreenControlHandler } from '../systems/ScreenControlHandler';
+import { JoypadInputHandler } from '../systems/JoypadInputHandler';
 
 export class MenuState implements GameState {
     private scene: THREE.Scene;

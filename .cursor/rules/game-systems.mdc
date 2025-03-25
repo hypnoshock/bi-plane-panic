@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- systems are found in `src/systems`
+- systems are contained functionality that can be used within multiple game states
+- We try to put code into discrete systems were possible so that code be resused both in multiple game states and in other projects
