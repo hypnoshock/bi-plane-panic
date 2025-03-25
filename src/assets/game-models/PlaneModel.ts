@@ -37,9 +37,15 @@ export class PlaneModel {
     }
 
     public update(): void {
-        // Rotate the spaceship
-        // this.group.rotation.y += 0.01;
-        this.group.rotation.z = Math.sin(Date.now() * 0.001) * 0.05; // Add a gentle rocking motion
+        // Get the current Z rotation from the parent group
+        const parentZRotation = this.group.parent?.rotation.z || 0;
+        
+        // Make X rotation proportional to Z rotation
+        // When Z is PI (180 degrees), X should be PI (180 degrees)
+        this.group.rotation.x = parentZRotation;
+        
+        // Keep the gentle rocking motion
+        this.group.rotation.z = Math.sin(Date.now() * 0.001) * 0.05;
     }
 
     public getGroup(): THREE.Group {
