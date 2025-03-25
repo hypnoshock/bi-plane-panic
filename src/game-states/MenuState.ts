@@ -56,7 +56,7 @@ export class MenuState implements GameState {
         this.menuContainer.style.textAlign = 'center';
         this.menuContainer.style.color = 'white';
         this.menuContainer.style.fontFamily = 'Arial, sans-serif';
-        this.menuContainer.style.fontSize = 'min(6vh, 32px)';
+        this.menuContainer.style.fontSize = '6vh';
         this.menuContainer.style.zIndex = '1000';
         this.menuContainer.style.touchAction = 'none';
         document.body.appendChild(this.menuContainer);
@@ -129,17 +129,17 @@ export class MenuState implements GameState {
                     100% { transform: rotate(-2deg); }
                 }
                 .title {
-                    font-size: min(12vh, 72px);
+                    font-size: 12vh;
                     font-weight: bold;
-                    margin-bottom: min(5vh, 40px);
+                    margin-bottom: 5vh;
                     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
                     animation: gentleRotate 3s ease-in-out infinite;
                     display: inline-block;
                 }
                 .menu-item {
-                    margin: min(2vh, 20px);
+                    margin: 2vh;
                     cursor: pointer;
-                    padding: min(1vh, 10px);
+                    padding: 1vh;
                     transition: color 0.2s ease;
                 }
                 .menu-item:hover {
