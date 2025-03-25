@@ -8,9 +8,12 @@ export class CPUInputHandler {
     private debugMode: boolean = true;
     private lastShootTime: number = 0;
     private shootCooldown: number = 0.25; // Minimum time between shots in seconds
-    private decisionUpdateInterval: number = 0.1; // How often to update AI decisions
+    private decisionUpdateInterval: number = 0.2; // Increased from 0.1 to 0.2 for slower reactions
     private lastDecisionTime: number = 0;
     private currentTarget: Player | null = null;
+    private lastTargetPosition: THREE.Vector3 | null = null;
+    private targetPredictionError: number = 0.3; // Random error in radians (about 17 degrees)
+    private reactionDelay: number = 0.15; // Seconds of delay before reacting to changes
 
     constructor() {}
 
@@ -87,10 +90,38 @@ export class CPUInputHandler {
         }
     }
 
+    private predictTargetPosition(targetPosition: THREE.Vector3): THREE.Vector3 {
+        if (!this.lastTargetPosition) {
+            this.lastTargetPosition = targetPosition.clone();
+            return targetPosition;
+        }
+
+        // Calculate target's velocity
+        const velocity = new THREE.Vector3().subVectors(targetPosition, this.lastTargetPosition);
+        
+        // Add some random error to the prediction
+        const predictionError = (Math.random() - 0.5) * this.targetPredictionError;
+        
+        // Predict future position with error
+        const predictedPosition = targetPosition.clone().add(velocity.multiplyScalar(this.reactionDelay));
+        predictedPosition.x += Math.cos(predictionError) * 2;
+        predictedPosition.y += Math.sin(predictionError) * 2;
+        
+        this.lastTargetPosition = targetPosition.clone();
+        return predictedPosition;
+    }
+
     public update(deltaTime: number): void {
         if (!this.controlledPlayer || !this.eventHandler) return;
 
         const currentTime = Date.now() / 1000; // Convert to seconds
+        
+        // Only update decisions every decisionUpdateInterval seconds
+        if (currentTime - this.lastDecisionTime < this.decisionUpdateInterval) {
+            return;
+        }
+        this.lastDecisionTime = currentTime;
+
         const controlledPosition = this.controlledPlayer.getGroup().position;
         const controlledRotation = this.controlledPlayer.getGroup().rotation;
 
@@ -111,19 +142,22 @@ export class CPUInputHandler {
 
         if (closestPlayer) {
             const targetPosition = closestPlayer.getGroup().position;
+            const predictedPosition = this.predictTargetPosition(targetPosition);
             
-            // Calculate vector to target
+            // Calculate vector to predicted target position
             const vectorToTarget = new THREE.Vector3(
-                targetPosition.x - controlledPosition.x,
-                targetPosition.y - controlledPosition.y,
+                predictedPosition.x - controlledPosition.x,
+                predictedPosition.y - controlledPosition.y,
                 0
             ).normalize();
             
-            // Calculate angle to target
-            const angleToTarget = Math.atan2(
+            // Calculate angle to target with some random error
+            const baseAngle = Math.atan2(
                 vectorToTarget.y,
                 vectorToTarget.x
             );
+            const angleError = (Math.random() - 0.5) * this.targetPredictionError;
+            const angleToTarget = baseAngle + angleError;
             
             // Calculate angle difference
             let angleDiff = angleToTarget - controlledRotation.z;
@@ -146,9 +180,9 @@ export class CPUInputHandler {
                 return; // Skip normal behavior while evading
             }
 
-            // Normal chase behavior
-            // Turn towards target
-            if (Math.abs(angleDiff) > 0.1) {
+            // Normal chase behavior with slower turning
+            // Turn towards target with a larger threshold
+            if (Math.abs(angleDiff) > 0.2) { // Increased from 0.1 to 0.2 for less precise turning
                 // Always turn in the direction that requires the least rotation
                 if (angleDiff > 0) {
                     this.eventHandler('left', true);
@@ -162,20 +196,31 @@ export class CPUInputHandler {
                 this.eventHandler('left', false);
             }
 
-            // Move towards target
+            // Move towards target with some randomness
             if (minDistance > 3) {
-                this.eventHandler('up', true);
-                this.eventHandler('down', false);
+                // Randomly decide whether to move or not
+                if (Math.random() > 0.1) { // 90% chance to move
+                    this.eventHandler('up', true);
+                    this.eventHandler('down', false);
+                } else {
+                    this.eventHandler('up', false);
+                    this.eventHandler('down', false);
+                }
             } else {
                 this.eventHandler('up', false);
                 this.eventHandler('down', false);
             }
 
-            // Shooting logic
-            if (Math.abs(angleDiff) < 0.2 && minDistance < 8) { // If we're roughly facing the target and in range
+            // Shooting logic with less accuracy
+            if (Math.abs(angleDiff) < 0.3 && minDistance < 8) { // Increased angle threshold from 0.2 to 0.3
                 if (currentTime - this.lastShootTime >= this.shootCooldown) {
-                    this.eventHandler('button1', true);
-                    this.lastShootTime = currentTime;
+                    // Random chance to miss
+                    if (Math.random() > 0.2) { // 80% chance to shoot
+                        this.eventHandler('button1', true);
+                        this.lastShootTime = currentTime;
+                    } else {
+                        this.eventHandler('button1', false);
+                    }
                 }
             } else {
                 this.eventHandler('button1', false);
@@ -187,6 +232,7 @@ export class CPUInputHandler {
             this.eventHandler('left', false);
             this.eventHandler('right', false);
             this.eventHandler('button1', false);
+            this.lastTargetPosition = null;
         }
     }
 } 
