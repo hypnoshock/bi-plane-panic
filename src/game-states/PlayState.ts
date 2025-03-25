@@ -13,6 +13,7 @@ import { ExplosionSystem } from '../systems/ExplosionSystem';
 import { CollisionSystem } from '../systems/CollisionSystem';
 import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
 import { SmokeSystem } from '../systems/SmokeSystem';
+import { MusicSystem } from '../systems/MusicSystem';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -23,6 +24,7 @@ export class PlayState implements GameState {
     private gameStateManager!: GameStateManager;
     private backgroundTexture: THREE.CanvasTexture | null = null;
     private audioSystem: AudioSystem;
+    private musicSystem: MusicSystem;
     private players: Player[] = [];
     private bulletSystem: BulletSystem;
     private explosionSystem: ExplosionSystem;
@@ -45,6 +47,7 @@ export class PlayState implements GameState {
     ) {
         // Create audio system
         this.audioSystem = new AudioSystem();
+        this.musicSystem = new MusicSystem(this.audioSystem);
         this.bulletSystem = new BulletSystem(this.scene, this.audioSystem);
         this.explosionSystem = new ExplosionSystem(this.scene, this.audioSystem);
         this.collisionSystem = new CollisionSystem(this.bulletSystem, this.explosionSystem);
@@ -231,11 +234,12 @@ export class PlayState implements GameState {
         this.gameStateManager = manager;
     }
 
-    public enter(): void {
+    public async enter(): Promise<void> {
         this.setupBackground();
 
-        // Disabled while in development
-        // this.audioSystem.playMusic();
+        // Load and play game music
+        await this.musicSystem.loadTrack('game-music.json');
+        this.musicSystem.play();
         
         // Show controls only on mobile devices
         if (this.isMobileDevice()) {
@@ -251,7 +255,8 @@ export class PlayState implements GameState {
 
     public exit(): void {
         // Stop music
-        this.audioSystem.stopMusic();
+        this.musicSystem.stop();
+        this.musicSystem.cleanup();
         this.audioSystem.cleanup();
 
         // Clean up background texture

@@ -2,10 +2,11 @@ import { GameState } from './GameState';
 import * as THREE from 'three';
 import { GameStateManager } from './GameStateManager';
 import { PlayState } from './PlayState';
-import { KeyboardHandler } from '../systems/KeyboardHandler';
+import { KeyboardHandler } from '../systems/input-handlers/KeyboardHandler';
 import { AudioSystem } from '../systems/AudioSystem';
-import { ScreenControlHandler } from '../systems/ScreenControlHandler';
-import { JoypadInputHandler } from '../systems/JoypadInputHandler';
+import { ScreenControlHandler } from '../systems/input-handlers/ScreenControlHandler';
+import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
+import { MusicSystem } from '../systems/MusicSystem';
 
 export class MenuState implements GameState {
     private scene: THREE.Scene;
@@ -20,12 +21,14 @@ export class MenuState implements GameState {
     private joypadHandler!: JoypadInputHandler;
     private backgroundTexture: THREE.CanvasTexture | null = null;
     private audioSystem: AudioSystem;
+    private musicSystem: MusicSystem;
 
     constructor(scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer) {
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
         this.audioSystem = new AudioSystem();
+        this.musicSystem = new MusicSystem(this.audioSystem);
         this.setupMenu();
     }
 
@@ -172,16 +175,18 @@ export class MenuState implements GameState {
         (this.menuContainer as any)._cleanup = cleanup;
     }
 
-    enter(): void {
+    async enter(): Promise<void> {
         this.setupBackground();
         this.updateMenuDisplay();
-        this.audioSystem.playMenuMusic();
+        await this.musicSystem.loadTrack('menu-music.json');
+        this.musicSystem.play();
         this.screenControlHandler.hideControls();
     }
 
     exit(): void {
         this.menuContainer.remove();
-        this.audioSystem.stopMenuMusic();
+        this.musicSystem.stop();
+        this.musicSystem.cleanup();
         this.audioSystem.cleanup();
 
         if (this.backgroundTexture) {
