@@ -18,6 +18,7 @@ export class PlayState implements GameState {
     private screenControlHandler!: ScreenControlHandler;
     private joypadHandler!: JoypadInputHandler;
     private cpuHandler!: CPUInputHandler;
+    private cpuHandler2!: CPUInputHandler;
     private gameStateManager!: GameStateManager;
     private backgroundTexture: THREE.CanvasTexture | null = null;
     private audioSystem: AudioSystem;
@@ -76,6 +77,21 @@ export class PlayState implements GameState {
             shoot: false
         };
 
+        // Create CPU player 3 with a purple plane model
+        const planeModel3 = new PlaneModel(0x800080);
+        const player3 = new Player(planeModel3, 2);
+        player3.setBulletSystem(this.bulletSystem);
+        player3.getGroup().position.set(0, -5, 0); // Position at bottom middle
+        scene.add(player3.getGroup());
+        this.players.push(player3);
+        this.playerInputFlags[2] = {
+            moveUp: false,
+            moveDown: false,
+            moveLeft: false,
+            moveRight: false,
+            shoot: false
+        };
+
         // Add players to collision system
         this.players.forEach(player => this.collisionSystem.addPlayer(player));
 
@@ -124,7 +140,13 @@ export class PlayState implements GameState {
         // Set up player 2 controls (CPU)
         this.cpuHandler.setEventHandler((event, isPress) => inputHandler(`player2_${event}`, isPress));
         this.cpuHandler.setControlledPlayer(this.players[1]);
-        this.cpuHandler.setOtherPlayers([this.players[0]]);
+        this.cpuHandler.setOtherPlayers([this.players[0], this.players[2]]);
+
+        // Set up player 3 controls (CPU)
+        this.cpuHandler2 = new CPUInputHandler();
+        this.cpuHandler2.setEventHandler((event, isPress) => inputHandler(`player3_${event}`, isPress));
+        this.cpuHandler2.setControlledPlayer(this.players[2]);
+        this.cpuHandler2.setOtherPlayers([this.players[0], this.players[1], this.players[1]]);
     }
 
     private handleInput(event: string, isPress: boolean): void {
@@ -167,6 +189,27 @@ export class PlayState implements GameState {
                     break;
                 case 'button1':
                     this.playerInputFlags[1].shoot = isPress;
+                    break;
+            }
+        }
+        // Player 3 controls (CPU)
+        else if (event.startsWith('player3_')) {
+            const action = event.replace('player3_', '');
+            switch (action) {
+                case 'up':
+                    this.playerInputFlags[2].moveUp = isPress;
+                    break;
+                case 'down':
+                    this.playerInputFlags[2].moveDown = isPress;
+                    break;
+                case 'left':
+                    this.playerInputFlags[2].moveLeft = isPress;
+                    break;
+                case 'right':
+                    this.playerInputFlags[2].moveRight = isPress;
+                    break;
+                case 'button1':
+                    this.playerInputFlags[2].shoot = isPress;
                     break;
             }
         }
@@ -236,6 +279,7 @@ export class PlayState implements GameState {
         this.keyboardHandler.update();
         this.screenControlHandler.update();
         this.cpuHandler.update(deltaTime);
+        this.cpuHandler2.update(deltaTime);
     }
 
     public render(): void {

@@ -5,10 +5,45 @@ import { MenuState } from './game-states/MenuState';
 
 // Create scene, camera, and renderer
 const scene: THREE.Scene = new THREE.Scene();
-const camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+// Create main container that takes up the full viewport
+const container = document.createElement('div');
+container.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    overflow: hidden;
+`;
+document.body.appendChild(container);
+
+// Create game container with 16:9 aspect ratio
+const gameContainer = document.createElement('div');
+gameContainer.style.cssText = `
+    position: relative;
+    width: min(100vw, 100vh * 16/9);
+    height: min(100vh, 100vw * 9/16);
+    background-color: #000;
+`;
+container.appendChild(gameContainer);
+
+// Create camera with 16:9 aspect ratio
+const camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(75, 16/9, 0.1, 1000);
 const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+renderer.setSize(gameContainer.clientWidth, gameContainer.clientHeight);
+renderer.domElement.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+`;
+gameContainer.appendChild(renderer.domElement);
 
 // Add lights
 const light: THREE.DirectionalLight = new THREE.DirectionalLight(0xffffff, 3);
@@ -22,20 +57,22 @@ scene.add(ambientLight);
 camera.position.z = 5;
 
 // Create FPS counter
-const SHOW_FPS_COUNTER = false; // Set to true to show FPS counter
+const SHOW_FPS_COUNTER = false;
 const fpsCounter = document.createElement('div');
-fpsCounter.style.position = 'absolute';
-fpsCounter.style.bottom = '20px';
-fpsCounter.style.right = '20px';
-fpsCounter.style.color = 'white';
-fpsCounter.style.fontSize = '16px';
-fpsCounter.style.fontFamily = 'Arial, sans-serif';
-fpsCounter.style.zIndex = '1000';
-fpsCounter.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-fpsCounter.style.padding = '8px 12px';
-fpsCounter.style.borderRadius = '4px';
-fpsCounter.style.display = SHOW_FPS_COUNTER ? 'block' : 'none';
-document.body.appendChild(fpsCounter);
+fpsCounter.style.cssText = `
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    color: white;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: ${SHOW_FPS_COUNTER ? 'block' : 'none'};
+`;
+gameContainer.appendChild(fpsCounter);
 
 // FPS calculation variables
 let frameCount = 0;
@@ -94,9 +131,9 @@ function animate(currentTime: number): void {
 
 // Handle window resize
 window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    renderer.setSize(gameContainer.clientWidth, gameContainer.clientHeight);
+    camera.aspect = 16/9;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // Handle window unload
@@ -110,7 +147,7 @@ animate(0);
 // Add orientation check for mobile devices
 const orientationMessage = document.createElement('div');
 orientationMessage.style.cssText = `
-    position: fixed;
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -123,24 +160,7 @@ orientationMessage.style.cssText = `
     z-index: 2000;
     font-family: Arial, sans-serif;
 `;
-
-const orientationIcon = document.createElement('div');
-orientationIcon.style.cssText = `
-    font-size: 48px;
-    margin-bottom: 10px;
-`;
-orientationIcon.textContent = '📱';
-
-const orientationText = document.createElement('div');
-orientationText.style.cssText = `
-    font-size: 18px;
-    margin-bottom: 10px;
-`;
-orientationText.textContent = 'Please rotate your device to landscape mode';
-
-orientationMessage.appendChild(orientationIcon);
-orientationMessage.appendChild(orientationText);
-document.body.appendChild(orientationMessage);
+gameContainer.appendChild(orientationMessage);
 
 function checkOrientation() {
     if (window.innerWidth < window.innerHeight && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {

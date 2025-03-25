@@ -88,7 +88,7 @@ export class Player {
     }
 
     public shoot(deltaTime: number): void {
-        if (!this.bulletSystem) return;
+        if (!this.bulletSystem || this.isDead()) return;
         
         const currentTime = Date.now();
         if (currentTime - this.lastSpacePress >= this.fireRate * 1000) {

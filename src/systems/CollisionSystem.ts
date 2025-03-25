@@ -27,8 +27,8 @@ export class CollisionSystem {
             const bulletPlayerNum = bullet.getPlayerNum();
 
             for (const player of this.players) {
-                // Skip if bullet belongs to this player
-                if (bulletPlayerNum === player.getPlayerNum()) {
+                // Skip if bullet belongs to this player or if player is dead
+                if (bulletPlayerNum === player.getPlayerNum() || player.isDead()) {
                     continue;
                 }
 

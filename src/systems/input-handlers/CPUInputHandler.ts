@@ -40,6 +40,7 @@ export class CPUInputHandler {
         
         // Check if any player is shooting at us
         for (const player of this.otherPlayers) {
+            if (player.isDead()) continue;
             const playerPosition = player.getGroup().position;
             const playerRotation = player.getGroup().rotation;
             
@@ -130,6 +131,7 @@ export class CPUInputHandler {
         let minDistance = Infinity;
 
         for (const player of this.otherPlayers) {
+            if (player.isDead()) continue;
             const distance = controlledPosition.distanceTo(player.getGroup().position);
             if (distance < minDistance) {
                 minDistance = distance;
