@@ -18,13 +18,15 @@ export class Player {
     private flashDuration: number = 200; // Duration in milliseconds
     private originalColor: number = 0x4169e1;
     private flashColor: number = 0xffffff;
+    private playerNum: number;
 
-    constructor(model: PlaneModel) {
+    constructor(model: PlaneModel, playerNum: number) {
         this.model = model;
         this.group = new THREE.Group();
         this.group.add(this.model.getGroup());
         this.initialPosition = new THREE.Vector3(0, 0, 0);
         this.originalColor = this.model.getColor();
+        this.playerNum = playerNum;
     }
 
     public setBulletSystem(bulletSystem: BulletSystem): void {
@@ -103,7 +105,7 @@ export class Player {
             );
             
             // Shoot in the direction the plane is facing
-            this.bulletSystem.spawnBullet(bulletPosition, forward, false);
+            this.bulletSystem.spawnBullet(bulletPosition, forward, this.playerNum);
             this.lastSpacePress = currentTime;
         }
     }
@@ -142,5 +144,9 @@ export class Player {
 
     private hideShip(): void {
         this.group.visible = false;
+    }
+
+    public getPlayerNum(): number {
+        return this.playerNum;
     }
 } 

@@ -1,17 +1,17 @@
 import * as THREE from 'three';
-import { Bullet as BulletModel } from '../game-models/Bullet';
+import { BulletModel } from '../assets/game-models/BulletModel';
 
 export class Bullet {
     private model: BulletModel;
     private group: THREE.Group;
     private speed: number = 10; // Units per second
     private direction: THREE.Vector3;
-    private isEnemy: boolean;
+    private playerNum: number;
 
-    constructor(bullet: BulletModel, direction: THREE.Vector3, isEnemy: boolean) {
+    constructor(bullet: BulletModel, direction: THREE.Vector3, playerNum: number) {
         this.model = bullet;
         this.direction = direction.normalize();
-        this.isEnemy = isEnemy;
+        this.playerNum = playerNum;
         this.group = new THREE.Group();
         this.group.add(this.model.getMesh());
     }
@@ -29,7 +29,7 @@ export class Bullet {
         this.group.position.set(x, y, z);
     }
 
-    public isEnemyBullet(): boolean {
-        return this.isEnemy;
+    public getPlayerNum(): number {
+        return this.playerNum;
     }
 } 
