@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { GameState } from './GameState';
-import { KeyboardHandler } from '../systems/KeyboardHandler';
-import { ScreenControlHandler } from '../systems/ScreenControlHandler';
-import { JoypadInputHandler } from '../systems/JoypadInputHandler';
+import { KeyboardHandler } from '../systems/input-handlers/KeyboardHandler';
+import { ScreenControlHandler } from '../systems/input-handlers/ScreenControlHandler';
+import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
 
 export class GameStateManager {
     private currentState: GameState | null = null;
@@ -10,11 +10,7 @@ export class GameStateManager {
     private screenControlHandler: ScreenControlHandler;
     private joypadHandler: JoypadInputHandler;
 
-    constructor(
-        private scene: THREE.Scene, 
-        private camera: THREE.PerspectiveCamera, 
-        private renderer: THREE.WebGLRenderer
-    ) {
+    constructor() {
         // Create shared input handlers
         this.keyboardHandler = new KeyboardHandler(() => {});
         this.screenControlHandler = new ScreenControlHandler(() => {});

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { GameState } from './GameState';
-import { KeyboardHandler } from '../systems/KeyboardHandler';
-import { ScreenControlHandler } from '../systems/ScreenControlHandler';
-import { JoypadInputHandler } from '../systems/JoypadInputHandler';
+import { KeyboardHandler } from '../systems/input-handlers/KeyboardHandler';
+import { ScreenControlHandler } from '../systems/input-handlers/ScreenControlHandler';
+import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
 import { GameStateManager } from './GameStateManager';
 import { MenuState } from './MenuState';
 import { AudioSystem } from '../systems/AudioSystem';
