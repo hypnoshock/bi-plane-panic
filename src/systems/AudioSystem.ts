@@ -1,11 +1,32 @@
 export class AudioSystem {
-    private audioContext: AudioContext;
-    private masterGainNode: GainNode;
-    private musicGainNode: GainNode;
-    private drumGainNode: GainNode;
-    private isMenuMusicPlaying: boolean = false;
-
+    private audioContext!: AudioContext;
+    private masterGainNode!: GainNode;
+    private musicGainNode!: GainNode;
+    private drumGainNode!: GainNode;
+    public isReady: boolean = false;
+    private readyCallback: (() => void) | null = null;
     constructor() {
+        this.initializeAudioContext();
+        const userInteractionHandler = () => {
+            this.isReady = true;
+            if (this.readyCallback) {
+                this.readyCallback();
+                this.readyCallback = null;
+            }
+            // Remove the event listeners after initialization to prevent multiple calls
+            document.removeEventListener('click', userInteractionHandler);
+            document.removeEventListener('keydown', userInteractionHandler);
+            document.removeEventListener('touchstart', userInteractionHandler);
+            document.removeEventListener('pointerdown', userInteractionHandler);
+        };
+    
+        document.addEventListener('click', userInteractionHandler);
+        document.addEventListener('keydown', userInteractionHandler);
+        document.addEventListener('touchstart', userInteractionHandler);
+        document.addEventListener('pointerdown', userInteractionHandler);
+    }
+
+    private initializeAudioContext(): void {
         this.audioContext = new AudioContext();
         this.masterGainNode = this.audioContext.createGain();
         this.musicGainNode = this.audioContext.createGain();
@@ -13,6 +34,14 @@ export class AudioSystem {
         this.masterGainNode.connect(this.audioContext.destination);
         this.musicGainNode.connect(this.masterGainNode);
         this.drumGainNode.connect(this.masterGainNode);
+    }
+
+    public setReadyCallback(callback: () => void): void {
+        this.readyCallback = callback;
+    }
+
+    public clearReadyCallback(): void {
+        this.readyCallback = null;
     }
 
     public getAudioContext(): AudioContext {

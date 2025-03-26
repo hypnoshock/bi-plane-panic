@@ -171,6 +171,13 @@ export class MusicSystem {
     public play(): void {
         if (!this.currentTrack || this.isPlaying) return;
 
+        if (!this.audioSystem.isReady) {
+            this.audioSystem.setReadyCallback(() => {
+                this.play();
+            });
+            return;
+        }
+
         this.isPlaying = true;
         this.startTime = this.audioSystem.getAudioContext().currentTime;
         this.lastBeat = 0;
@@ -233,5 +240,8 @@ export class MusicSystem {
 
     public cleanup(): void {
         this.stop();
+        if (!this.audioSystem.isReady) {
+            this.audioSystem.clearReadyCallback();
+        }
     }
 } 
