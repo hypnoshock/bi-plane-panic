@@ -2,7 +2,7 @@ import './style.css'
 import * as THREE from 'three';
 import { GameStateManager } from './game-states/GameStateManager';
 import { MenuState } from './game-states/MenuState';
-
+import { PlayState } from './game-states/PlayState';
 // Create scene, camera, and renderer
 const scene: THREE.Scene = new THREE.Scene();
 
@@ -85,10 +85,18 @@ const frameTimeHistorySize = 60; // Keep track of last 60 frames
 // Create game state manager
 const gameStateManager = new GameStateManager(scene, camera, renderer);
 
-// Create and set initial state
-const menuState = new MenuState(scene, camera, renderer);
-menuState.setGameStateManager(gameStateManager);
-gameStateManager.setState(menuState);
+// Check for query string 'portal'
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('portal') === 'true') {
+    const playState = new PlayState(scene, camera, renderer); // Assuming PlayState is imported
+    playState.setGameStateManager(gameStateManager);
+    gameStateManager.setState(playState);
+} else {
+    // Create and set initial state
+    const menuState = new MenuState(scene, camera, renderer);
+    menuState.setGameStateManager(gameStateManager);
+    gameStateManager.setState(menuState);
+}
 
 let lastTime = 0;
 
