@@ -100,6 +100,47 @@ export class AudioSystem {
         };
     }
 
+    public playClap(time: number): void {
+        const noise = this.audioContext.createBufferSource();
+        const gainNode = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+
+        // Generate white noise
+        const bufferSize = this.audioContext.sampleRate * 0.2;
+        const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        noise.buffer = buffer;
+
+        // Configure clap sound
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(2000, time);
+        filter.frequency.exponentialRampToValueAtTime(1000, time + 0.2);
+        filter.Q.setValueAtTime(2, time);
+
+        gainNode.gain.setValueAtTime(0, time);
+        gainNode.gain.linearRampToValueAtTime(0.2, time + 0.01); // Quick attack
+        gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.2); // Longer release
+
+        // Connect nodes
+        noise.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(this.drumGainNode);
+
+        // Start and stop
+        noise.start(time);
+        noise.stop(time + 0.2);
+
+        // Cleanup
+        noise.onended = () => {
+            noise.disconnect();
+            filter.disconnect();
+            gainNode.disconnect();
+        };
+    }
+
     public playBullet(): void {
         // Create oscillator for the bullet sound
         const oscillator = this.audioContext.createOscillator();

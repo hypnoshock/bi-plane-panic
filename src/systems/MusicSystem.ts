@@ -9,6 +9,7 @@ interface Note {
 interface Drums {
     kick: number[];
     hihat: number[];
+    clap?: number[];
 }
 
 interface MusicTrack {
@@ -155,12 +156,15 @@ export class MusicSystem {
     private playDrums(beat: number, time: number): void {
         if (!this.currentTrack) return;
 
-        const { kick, hihat } = this.currentTrack.tracks.drums;
+        const { kick, hihat, clap } = this.currentTrack.tracks.drums;
         if (kick.includes(beat)) {
             this.audioSystem.playKick(time);
         }
         if (hihat.includes(beat)) {
             this.audioSystem.playHiHat(time);
+        }
+        if (clap?.includes(beat)) {
+            this.audioSystem.playClap(time);
         }
     }
 
