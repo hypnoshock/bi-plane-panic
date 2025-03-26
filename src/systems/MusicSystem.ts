@@ -119,21 +119,37 @@ export class MusicSystem {
     }
 
     private playNote(note: Note, time: number): void {
-        if (!this.musicOscillator || !this.musicFilter) return;
+        if (!this.musicOscillator || !this.musicFilter || !this.musicGain || !this.currentTrack) return;
 
+        const beatDuration = 60 / this.currentTrack.bpm;
+        const noteDuration = beatDuration * note.duration;
         const frequency = note.frequency;
+        
+        // Set up note envelope
+        this.musicGain.gain.setValueAtTime(0, time);
+        this.musicGain.gain.linearRampToValueAtTime(0.2, time + 0.01); // Quick attack
+        this.musicGain.gain.linearRampToValueAtTime(0, time + noteDuration); // Release at note end
+        
         this.musicOscillator.frequency.setValueAtTime(frequency, time);
         this.musicFilter.frequency.setValueAtTime(2000, time);
-        this.musicFilter.frequency.exponentialRampToValueAtTime(1000, time + note.duration);
+        this.musicFilter.frequency.exponentialRampToValueAtTime(1000, time + noteDuration);
     }
 
     private playBassNote(note: Note, time: number): void {
-        if (!this.bassOscillator || !this.bassFilter) return;
+        if (!this.bassOscillator || !this.bassFilter || !this.bassGain || !this.currentTrack) return;
 
+        const beatDuration = 60 / this.currentTrack.bpm;
+        const noteDuration = beatDuration * note.duration;
         const frequency = note.frequency;
+        
+        // Set up note envelope
+        this.bassGain.gain.setValueAtTime(0, time);
+        this.bassGain.gain.linearRampToValueAtTime(0.15, time + 0.01); // Quick attack
+        this.bassGain.gain.linearRampToValueAtTime(0, time + noteDuration); // Release at note end
+        
         this.bassOscillator.frequency.setValueAtTime(frequency, time);
         this.bassFilter.frequency.setValueAtTime(500, time);
-        this.bassFilter.frequency.exponentialRampToValueAtTime(200, time + note.duration);
+        this.bassFilter.frequency.exponentialRampToValueAtTime(200, time + noteDuration);
     }
 
     private playDrums(beat: number, time: number): void {
@@ -199,6 +215,8 @@ export class MusicSystem {
         const loopDuration = totalBeats * beatDuration;
         setTimeout(() => {
             if (this.isPlaying) {
+                console.log('looping');
+                this.stop();
                 this.play();
             }
         }, loopDuration * 1000);

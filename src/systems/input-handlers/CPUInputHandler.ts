@@ -5,7 +5,7 @@ export class CPUInputHandler {
     private eventHandler: ((event: string, isPress: boolean) => void) | null = null;
     private controlledPlayer: Player | null = null;
     private otherPlayers: Player[] = [];
-    private debugMode: boolean = true;
+    private debugMode: boolean = false;
     private lastShootTime: number = 0;
     private shootCooldown: number = 0.25; // Minimum time between shots in seconds
     private decisionUpdateInterval: number = 0.2; // Increased from 0.1 to 0.2 for slower reactions

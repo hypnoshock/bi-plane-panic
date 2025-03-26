@@ -1,6 +1,6 @@
 {
     "title": "Menu Music",
-    "bpm": 60,
+    "bpm": 120,
     "tracks": {
         "melody": [
             {"beat": 0, "frequency": 196, "duration": 1.0},
@@ -17,8 +17,8 @@
             {"beat": 11, "frequency": 349.23, "duration": 1.0},
             {"beat": 12, "frequency": 196, "duration": 1.0},
             {"beat": 13, "frequency": 220, "duration": 1.0},
-            {"beat": 14, "frequency": 246.94, "duration": 1.0},
-            {"beat": 15, "frequency": 293.66, "duration": 1.0}
+            {"beat": 14, "frequency": 293.66, "duration": 1.0},
+            {"beat": 15, "frequency": 246.94, "duration": 1.0}
         ],
         "drums": {
             "kick": [0, 2, 4, 6, 8, 10, 12, 14],

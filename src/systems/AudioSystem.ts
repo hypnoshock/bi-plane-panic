@@ -27,7 +27,7 @@ export class AudioSystem {
         return this.drumGainNode;
     }
 
-    private playKick(time: number): void {
+    public playKick(time: number): void {
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
         const filter = this.audioContext.createBiquadFilter();
@@ -61,7 +61,7 @@ export class AudioSystem {
         };
     }
 
-    private playHiHat(time: number): void {
+    public playHiHat(time: number): void {
         const noise = this.audioContext.createBufferSource();
         const gainNode = this.audioContext.createGain();
         const filter = this.audioContext.createBiquadFilter();

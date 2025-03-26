@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+music is played through the music system
+The music files are found in `public/assets/music`

@@ -1,11 +1,9 @@
 {
     "title": "Game Music",
-    "bpm": 240,
+    "bpm": 480,
     "tracks": {
         "melody": [
             {"beat": 0, "frequency": 220, "duration": 0.25},
-            {"beat": 1, "frequency": 277.18, "duration": 0.25},
-            {"beat": 2, "frequency": 329.63, "duration": 0.25},
             {"beat": 3, "frequency": 440, "duration": 0.25},
             {"beat": 4, "frequency": 220, "duration": 0.25},
             {"beat": 5, "frequency": 277.18, "duration": 0.25},
@@ -15,24 +13,24 @@
             {"beat": 9, "frequency": 293.66, "duration": 0.25},
             {"beat": 10, "frequency": 349.23, "duration": 0.25},
             {"beat": 11, "frequency": 493.88, "duration": 0.25},
-            {"beat": 12, "frequency": 246.94, "duration": 0.25},
-            {"beat": 13, "frequency": 293.66, "duration": 0.25},
-            {"beat": 14, "frequency": 349.23, "duration": 0.25},
-            {"beat": 15, "frequency": 493.88, "duration": 0.25}
+            {"beat": 12, "frequency": 246.94, "duration": 0.50},
+            {"beat": 13, "frequency": 293.66, "duration": 0.50},
+            {"beat": 14, "frequency": 349.23, "duration": 0.50},
+            {"beat": 15, "frequency": 493.88, "duration": 1}
         ],
         "bass": [
-            {"beat": 0, "frequency": 110, "duration": 0.5},
-            {"beat": 2, "frequency": 138.59, "duration": 0.5},
-            {"beat": 4, "frequency": 164.81, "duration": 0.5},
-            {"beat": 6, "frequency": 220, "duration": 0.5},
-            {"beat": 8, "frequency": 123.47, "duration": 0.5},
-            {"beat": 10, "frequency": 146.83, "duration": 0.5},
-            {"beat": 12, "frequency": 174.61, "duration": 0.5},
-            {"beat": 14, "frequency": 246.94, "duration": 0.5}
+            {"beat": 0, "frequency": 110, "duration": 2},
+            {"beat": 2, "frequency": 138.59, "duration": 2},
+            {"beat": 4, "frequency": 164.81, "duration": 2},
+            {"beat": 6, "frequency": 220, "duration": 2},
+            {"beat": 8, "frequency": 123.47, "duration": 2},
+            {"beat": 10, "frequency": 146.83, "duration": 2},
+            {"beat": 12, "frequency": 174.61, "duration": 2},
+            {"beat": 14, "frequency": 246.94, "duration": 2}
         ],
         "drums": {
-            "kick": [0, 4, 8, 12],
-            "hihat": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            "kick": [0, 4, 8, 9, 10, 11, 12, 14],
+            "hihat": [0, 2,3, 4, 6, 8,9, 10,11, 12, 14]
         }
     }
 } 
