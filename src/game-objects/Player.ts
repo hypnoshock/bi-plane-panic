@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { PlaneModel } from '../assets/game-models/PlaneModel';
+import { GLBModel } from '../assets/game-models/GLBModel';
 import { BulletSystem } from '../systems/BulletSystem';
 import { SmokeSystem } from '../systems/SmokeSystem';
 
 export class Player {
-    private model: PlaneModel;
+    private model: GLBModel;
     private group: THREE.Group;
     private moveSpeed: number = 5; // Units per second
     private rotationSpeed: number = 3; // Radians per second
@@ -24,8 +24,10 @@ export class Player {
     private smokeTimer: number = 0;
     private smokeInterval: number = 0.1; // Spawn smoke every 0.1 seconds
 
-    constructor(model: PlaneModel, playerNum: number) {
+    constructor(model: GLBModel, playerNum: number) {
         this.model = model;
+        this.model.getGroup().rotation.y = Math.PI / 2;
+        this.model.getGroup().scale.set(2, 2, 2);
         this.group = new THREE.Group();
         this.group.add(this.model.getGroup());
         this.initialPosition = new THREE.Vector3(0, 0, 0);

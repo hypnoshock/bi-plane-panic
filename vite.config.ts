@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: "/template/",
+  base: "/bi-planes/",
   server: {
     port: 3000
   }

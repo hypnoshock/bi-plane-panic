@@ -7,7 +7,7 @@ import { GameStateManager } from './GameStateManager';
 import { MenuState } from './MenuState';
 import { AudioSystem } from '../systems/AudioSystem';
 import { Player } from '../game-objects/Player';
-import { PlaneModel } from '../assets/game-models/PlaneModel';
+import { GLBModel } from '../assets/game-models/GLBModel';
 import { BulletSystem } from '../systems/BulletSystem';
 import { ExplosionSystem } from '../systems/ExplosionSystem';
 import { CollisionSystem } from '../systems/CollisionSystem';
@@ -54,7 +54,7 @@ export class PlayState implements GameState {
         this.smokeSystem = new SmokeSystem(this.scene);
 
         // Create player 1 with a blue plane model
-        const planeModel1 = new PlaneModel(0x4169e1);
+        const planeModel1 = new GLBModel('assets/bi-plane.glb', 0x4169e1);
         const player1 = new Player(planeModel1, 0);
         player1.setBulletSystem(this.bulletSystem);
         player1.setSmokeSystem(this.smokeSystem);
@@ -70,7 +70,7 @@ export class PlayState implements GameState {
         };
 
         // Create player 2 with a red plane model
-        const planeModel2 = new PlaneModel(0xff0000);
+        const planeModel2 = new GLBModel('assets/bi-plane.glb', 0xff0000);
         const player2 = new Player(planeModel2, 1);
         player2.setBulletSystem(this.bulletSystem);
         player2.setSmokeSystem(this.smokeSystem);
@@ -86,7 +86,7 @@ export class PlayState implements GameState {
         };
 
         // Create CPU player 3 with a purple plane model
-        const planeModel3 = new PlaneModel(0x800080);
+        const planeModel3 = new GLBModel('assets/bi-plane.glb', 0x800080);
         const player3 = new Player(planeModel3, 2);
         player3.setBulletSystem(this.bulletSystem);
         player3.setSmokeSystem(this.smokeSystem);
