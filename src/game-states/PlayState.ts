@@ -65,62 +65,57 @@ export class PlayState implements GameState {
         this.boundarySphere = new BoundarySphere();
         this.scene.add(this.boundarySphere.getGroup());
 
-        // Create player 1 with a blue plane model
-        const planeModel1 = new GLBModel('assets/bi-plane.glb', 0x4169e1);
-        const player1 = new Player(planeModel1, 0);
-        player1.setBulletSystem(this.bulletSystem);
-        player1.setSmokeSystem(this.smokeSystem);
-        player1.setExplosionSystem(this.explosionSystem);
-        player1.getGroup().position.set(-5, 0, 0); // Position on the left
-        scene.add(player1.getGroup());
-        this.players.push(player1);
-        this.playerInputFlags[0] = {
-            moveUp: false,
-            moveDown: false,
-            moveLeft: false,
-            moveRight: false,
-            shoot: false
-        };
+        // Define player configurations
+        const playerConfigs = [
+            { color: 0x4169e1, isCPU: false }, // Blue player 1 (human)
+            { color: 0xff0000, isCPU: true },  // Red player 2 (CPU)
+            { color: 0x800080, isCPU: true }   // Purple player 3 (CPU)
+        ];
 
-        // Create player 2 with a red plane model
-        const planeModel2 = new GLBModel('assets/bi-plane.glb', 0xff0000);
-        const player2 = new Player(planeModel2, 1);
-        player2.setBulletSystem(this.bulletSystem);
-        player2.setSmokeSystem(this.smokeSystem);
-        player2.setExplosionSystem(this.explosionSystem);
-        player2.getGroup().position.set(5, 0, 0); // Position on the right
-        scene.add(player2.getGroup());
-        this.players.push(player2);
-        this.playerInputFlags[1] = {
-            moveUp: false,
-            moveDown: false,
-            moveLeft: false,
-            moveRight: false,
-            shoot: false
-        };
-
-        // Create CPU player 3 with a purple plane model
-        const planeModel3 = new GLBModel('assets/bi-plane.glb', 0x800080);
-        const player3 = new Player(planeModel3, 2);
-        player3.setBulletSystem(this.bulletSystem);
-        player3.setSmokeSystem(this.smokeSystem);
-        player3.setExplosionSystem(this.explosionSystem);
-        player3.getGroup().position.set(0, -5, 0); // Position at bottom middle
-        scene.add(player3.getGroup());
-        this.players.push(player3);
-        this.playerInputFlags[2] = {
-            moveUp: false,
-            moveDown: false,
-            moveLeft: false,
-            moveRight: false,
-            shoot: false
-        };
+        // Create and position all players
+        playerConfigs.forEach((config, index) => {
+            const planeModel = new GLBModel('assets/bi-plane.glb', config.color);
+            const player = new Player(planeModel, index);
+            
+            // Set up systems
+            player.setBulletSystem(this.bulletSystem);
+            player.setSmokeSystem(this.smokeSystem);
+            player.setExplosionSystem(this.explosionSystem);
+            
+            // Calculate position around the boundary
+            const angle = (index * 2 * Math.PI) / playerConfigs.length;
+            const position = new THREE.Vector3(
+                Math.cos(angle) * this.boundaryRadius,
+                Math.sin(angle) * this.boundaryRadius,
+                0
+            );
+            
+            // Set position and rotation
+            player.getGroup().position.copy(position);
+            // The plane model is rotated 90 degrees by default, so we need to adjust
+            // the rotation to face inward. The angle + Math.PI points outward, so we
+            // subtract Math.PI to point inward
+            player.getGroup().rotation.z = angle - Math.PI;
+            
+            // Add to scene and track
+            this.scene.add(player.getGroup());
+            this.players.push(player);
+            
+            // Set up input flags
+            this.playerInputFlags[index] = {
+                moveUp: false,
+                moveDown: false,
+                moveLeft: false,
+                moveRight: false,
+                shoot: false
+            };
+        });
 
         // Add players to collision system
         this.players.forEach(player => this.collisionSystem.addPlayer(player));
 
         // Position camera
-        camera.position.z = 10;
+        this.camera.position.z = 10;
     }
 
     private setupBackground(): void {
@@ -156,7 +151,7 @@ export class PlayState implements GameState {
         };
 
         // Set up player 1 controls (keyboard and screen)
-        this.joypadHandler.setEventHandler((event, isPress) => inputHandler(`player1a w_${event}`, isPress));
+        this.joypadHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
         this.keyboardHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
         this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
 
