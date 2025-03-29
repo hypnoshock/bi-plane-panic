@@ -307,6 +307,49 @@ export class AudioSystem {
         };
     }
 
+    public playWarning(): void {
+        const now = this.audioContext.currentTime;
+        const duration = 0.5; // Duration of the warning sound
+
+        // Create main oscillator for warning sound
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+
+        // Configure the warning sound
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(440, now); // A4 note
+        oscillator.frequency.exponentialRampToValueAtTime(880, now + duration/2); // A5 note
+        oscillator.frequency.exponentialRampToValueAtTime(440, now + duration); // Back to A4
+
+        // Configure filter
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1000, now);
+        filter.frequency.exponentialRampToValueAtTime(2000, now + duration);
+        filter.Q.setValueAtTime(2, now);
+
+        // Configure envelope
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+        // Connect nodes
+        oscillator.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(this.masterGainNode);
+
+        // Start and stop
+        oscillator.start(now);
+        oscillator.stop(now + duration);
+
+        // Cleanup
+        oscillator.onended = () => {
+            oscillator.disconnect();
+            filter.disconnect();
+            gainNode.disconnect();
+        };
+    }
+
     public cleanup(): void {
         this.audioContext.close();
     }

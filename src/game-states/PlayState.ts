@@ -34,6 +34,10 @@ export class PlayState implements GameState {
     private boundarySphere: BoundarySphere;
     private targetCameraZ: number = 10;
     private cameraZoomSpeed: number = 2;
+    private boundaryRadius: number = 15; // Radius of the boundary sphere
+    private playerBoundaryTimes: { [key: number]: number } = {}; // Track time each player has been outside boundary
+    private lastWarningTimes: { [key: number]: number } = {}; // Track last warning time for each player
+    private warningInterval: number = 1; // Time between warnings in seconds
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -287,7 +291,7 @@ export class PlayState implements GameState {
         
         // Find the furthest distance from center to any player
         let maxDistance = 0;
-        this.players.forEach(player => {
+        this.players.filter(player => !player.isDead()).forEach(player => {
             const position = player.getGroup().position;
             const distance = position.distanceTo(center);
             maxDistance = Math.max(maxDistance, distance);
@@ -308,6 +312,10 @@ export class PlayState implements GameState {
     public update(deltaTime: number): void {
         // Handle player movements
         this.players.forEach((player, index) => {
+            if (player.isDead()) {
+                return;
+            }
+
             const flags = this.playerInputFlags[index];
             if (flags.moveUp) player.moveUp(deltaTime);
             if (flags.moveDown) player.moveDown(deltaTime);
@@ -315,6 +323,40 @@ export class PlayState implements GameState {
             if (flags.moveRight) player.moveRight(deltaTime);
             if (flags.shoot) player.shoot(deltaTime);
             player.update(deltaTime);
+
+            // Check if player is outside boundary
+            const playerPosition = player.getPosition();
+            const distanceFromCenter = playerPosition.length();
+            
+            if (distanceFromCenter > this.boundaryRadius) {
+                // Player is outside boundary
+                player.setOutsideBoundary(true);
+                
+                if (!this.playerBoundaryTimes[index]) {
+                    this.playerBoundaryTimes[index] = 0;
+                }
+                this.playerBoundaryTimes[index] += deltaTime;
+
+                // Play warning sound if enough time has passed since last warning
+                const currentTime = Date.now();
+                if (!this.lastWarningTimes[index] || currentTime - this.lastWarningTimes[index] >= this.warningInterval * 1000) {
+                    this.audioSystem.playWarning();
+                    this.lastWarningTimes[index] = currentTime;
+                }
+
+                // Kill player if they've been outside for 3 seconds
+                if (this.playerBoundaryTimes[index] >= 3) {
+                    player.takeDamage();
+                    player.takeDamage(); // Call twice to reduce energy to 0
+                    this.playerBoundaryTimes[index] = 0; // Reset the timer
+                    this.lastWarningTimes[index] = 0; // Reset the warning timer
+                }
+            } else {
+                // Player is inside boundary
+                player.setOutsideBoundary(false);
+                this.playerBoundaryTimes[index] = 0;
+                this.lastWarningTimes[index] = 0;
+            }
         });
 
         // Update camera position

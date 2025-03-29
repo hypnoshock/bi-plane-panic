@@ -15,7 +15,7 @@ export class BoundarySphere {
             color: 0xffffff,
             wireframe: true,
             transparent: true,
-            opacity: 0.5 // Make it slightly transparent
+            opacity: 0.03 // Changed from 0.5 to 0.3 for more transparency
         });
         
         // Create the sphere mesh

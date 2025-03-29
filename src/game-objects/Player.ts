@@ -23,6 +23,9 @@ export class Player {
     private playerNum: number;
     private smokeTimer: number = 0;
     private smokeInterval: number = 0.1; // Spawn smoke every 0.1 seconds
+    private isOutsideBoundary: boolean = false;
+    private boundaryFlashTimer: number = 0;
+    private boundaryFlashInterval: number = 100; // Flash every 100ms
 
     constructor(model: GLBModel, playerNum: number) {
         this.model = model;
@@ -67,7 +70,20 @@ export class Player {
             }
         }
 
-        console.log(this.group.position);
+        // Handle boundary flash effect
+        if (this.isOutsideBoundary) {
+            const currentTime = Date.now();
+            if (currentTime - this.boundaryFlashTimer >= this.boundaryFlashInterval) {
+                this.boundaryFlashTimer = currentTime;
+                // Alternate between red and original color
+                const isRed = Math.floor(currentTime / this.boundaryFlashInterval) % 2 === 0;
+                this.model.setColor(isRed ? 0xff0000 : this.originalColor);
+            }
+        } else if (this.boundaryFlashTimer > 0) {
+            // Reset color when returning to boundary
+            this.model.setColor(this.originalColor);
+            this.boundaryFlashTimer = 0;
+        }
 
         // Handle smoke effect when energy is low
         if (this.energy === 1 && this.smokeSystem) {
@@ -171,5 +187,13 @@ export class Player {
 
     public getPlayerNum(): number {
         return this.playerNum;
+    }
+
+    public setOutsideBoundary(outside: boolean): void {
+        this.isOutsideBoundary = outside;
+        if (!outside) {
+            this.model.setColor(this.originalColor);
+            this.boundaryFlashTimer = 0;
+        }
     }
 } 
