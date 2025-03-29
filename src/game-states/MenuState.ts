@@ -52,6 +52,11 @@ export class MenuState implements GameState {
         this.audioSystem = new AudioSystem();
         this.musicSystem = new MusicSystem(this.audioSystem);
         this.setupMenu();
+
+        // Position camera
+        camera.position.z = 5;
+        camera.position.y = 0;
+        camera.position.x = 0;
     }
 
     private setupBackground(): void {

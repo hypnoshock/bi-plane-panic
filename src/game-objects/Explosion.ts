@@ -1,11 +1,12 @@
 import { ExplosionModel } from '../assets/game-models/ExplosionModel';
 import * as THREE from 'three';
+import { DebrisSystem } from '../systems/DebrisSystem';
 
 export class Explosion {
     private model: ExplosionModel;
 
-    constructor(isDeathExplosion: boolean = false) {
-        this.model = new ExplosionModel(isDeathExplosion);
+    constructor(isDeathExplosion: boolean = false, debrisSystem: DebrisSystem) {
+        this.model = new ExplosionModel(isDeathExplosion, debrisSystem);
     }
 
     public getModel(): ExplosionModel {

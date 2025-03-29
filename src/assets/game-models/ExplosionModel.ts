@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DebrisParticle } from '../../game-objects/DebrisParticle';
+import { DebrisSystem } from '../../systems/DebrisSystem';
 
 export class ExplosionModel {
     private fireGeometry: THREE.SphereGeometry;
@@ -13,13 +13,13 @@ export class ExplosionModel {
     private fireDuration: number = 1.5;
     private currentTime: number = 0;
     private whiteSphereDuration: number = 0.25;
-    private debrisParticles: DebrisParticle[] = [];
-    private numDebrisParticles: number = 12;
     private debrisSpawned: boolean = false;
     private isDeathExplosion: boolean;
+    private debrisSystem: DebrisSystem;
 
-    constructor(isDeathExplosion: boolean = false) {
+    constructor(isDeathExplosion: boolean = false, debrisSystem: DebrisSystem) {
         this.isDeathExplosion = isDeathExplosion;
+        this.debrisSystem = debrisSystem;
         
         // Adjust scale and duration based on explosion type
         if (isDeathExplosion) {
@@ -86,50 +86,11 @@ export class ExplosionModel {
 
         // Spawn debris particles only for death explosions
         if (this.isDeathExplosion && !this.debrisSpawned && this.currentTime > 0.1) {
-            this.spawnDebris();
+            this.debrisSystem.spawnDebris(this.group.position);
             this.debrisSpawned = true;
         }
 
-        // Update debris particles
-        this.debrisParticles = this.debrisParticles.filter(particle => {
-            const isActive = particle.update(deltaTime);
-            if (!isActive) {
-                this.group.remove(particle.getMesh());
-            }
-            return isActive;
-        });
-
         return true;
-    }
-
-    private spawnDebris(): void {
-        for (let i = 0; i < this.numDebrisParticles; i++) {
-            const particle = new DebrisParticle(0x808080);
-            
-            // Calculate position in a circular pattern
-            const angle = (i / this.numDebrisParticles) * Math.PI * 2;
-            const radius = 0.5; // Initial radius
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
-            const z = (Math.random() - 0.5) * radius;
-            
-            // Calculate velocity (outward from center)
-            const speed = 2 + Math.random() * 2; // Random speed between 2 and 4
-            const velocity = new THREE.Vector3(x, y, z).normalize().multiplyScalar(speed);
-            
-            // Add some randomness to the velocity
-            velocity.x += (Math.random() - 0.5) * 0.5;
-            velocity.y += (Math.random() - 0.5) * 0.5;
-            velocity.z += (Math.random() - 0.5) * 0.5;
-            
-            particle.setInitialPosition(
-                new THREE.Vector3(x, y, z),
-                velocity
-            );
-            
-            this.group.add(particle.getMesh());
-            this.debrisParticles.push(particle);
-        }
     }
 
     public setPosition(x: number, y: number, z: number): void {

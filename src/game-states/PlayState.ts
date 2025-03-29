@@ -16,6 +16,7 @@ import { SmokeSystem } from '../systems/SmokeSystem';
 import { MusicSystem } from '../systems/MusicSystem';
 import { BoundarySphere } from '../game-objects/BoundarySphere';
 import { StarfieldSystem } from '../systems/StarfieldSystem';
+import { DebrisSystem } from '../systems/DebrisSystem';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -46,6 +47,7 @@ export class PlayState implements GameState {
     private winner: Player | null = null;
     private winnerCameraDistance: number = 3; // Closer distance to view winner
     private cameraTargetPosition: THREE.Vector3 | null = null;
+    private debrisSystem: DebrisSystem;
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -54,6 +56,7 @@ export class PlayState implements GameState {
         moveLeft: boolean;
         moveRight: boolean;
         shoot: boolean;
+        menu: boolean;
     }} = {};
 
     constructor(
@@ -69,6 +72,7 @@ export class PlayState implements GameState {
         this.collisionSystem = new CollisionSystem(this.bulletSystem, this.explosionSystem);
         this.smokeSystem = new SmokeSystem(this.scene);
         this.starfieldSystem = new StarfieldSystem(this.scene, this.boundaryRadius);
+        this.debrisSystem = new DebrisSystem(this.scene);
 
         // Create winner text element
         this.winnerText = document.createElement('div');
@@ -153,7 +157,8 @@ export class PlayState implements GameState {
                 moveDown: false,
                 moveLeft: false,
                 moveRight: false,
-                shoot: false
+                shoot: false,
+                menu: false
             };
         });
 
@@ -216,13 +221,13 @@ export class PlayState implements GameState {
 
     private handleInput(event: string, isPress: boolean): void {
         // Handle menu return during win state
-        if (this.gameOver && event === 'button2' && isPress) {
+        if (this.gameOver && event === 'player1_button2' && isPress) {
             const menuState = new MenuState(this.scene, this.camera, this.renderer);
             menuState.setGameStateManager(this.gameStateManager);
             this.gameStateManager.setState(menuState);
             return;
         }
-
+        
         // Only handle other inputs if not in win state
         if (this.gameOver) return;
 
@@ -244,6 +249,9 @@ export class PlayState implements GameState {
                     break;
                 case 'button1':
                     this.playerInputFlags[0].shoot = isPress;
+                    break;
+                case 'button2':
+                    this.playerInputFlags[0].menu = isPress;
                     break;
             }
         }
@@ -333,8 +341,12 @@ export class PlayState implements GameState {
         // Remove boundary sphere
         this.scene.remove(this.boundarySphere.getGroup());
 
-        // Clean up starfield
+        // Clean up
         this.starfieldSystem.cleanup();
+        this.explosionSystem.cleanup();
+        this.bulletSystem.clearBullets();
+        this.debrisSystem.cleanup();
+        this.smokeSystem.cleanup();
 
         // Remove UI elements
         if (this.winnerText) {
@@ -391,7 +403,7 @@ export class PlayState implements GameState {
             }
             
             // Stop all movement
-            this.playerInputFlags = {};
+            // this.playerInputFlags = {};
             this.players.forEach(player => {
                 if (player !== this.winner) {
                     player.setGameOver();
@@ -427,6 +439,13 @@ export class PlayState implements GameState {
                 const currentZ = this.camera.position.z;
                 const newZ = THREE.MathUtils.lerp(currentZ, this.winnerCameraDistance, deltaTime * this.cameraZoomSpeed);
                 this.camera.position.z = newZ;
+
+                const flags = this.playerInputFlags[0];
+                if (flags.menu) {
+                    const menuState = new MenuState(this.scene, this.camera, this.renderer);
+                    menuState.setGameStateManager(this.gameStateManager);
+                    this.gameStateManager.setState(menuState);
+                }
             }
             return;
         }
