@@ -7,6 +7,7 @@ import { AudioSystem } from '../systems/AudioSystem';
 import { ScreenControlHandler } from '../systems/input-handlers/ScreenControlHandler';
 import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
 import { MusicSystem } from '../systems/MusicSystem';
+import { MenuPlane } from '../game-objects/MenuPlane';
 
 export class MenuState implements GameState {
     private scene: THREE.Scene;
@@ -24,6 +25,7 @@ export class MenuState implements GameState {
     private musicSystem: MusicSystem;
     private lastBeat: number = 0;
     private colorIndex: number = 0;
+    private menuPlanes: MenuPlane[] = [];
     private colors: string[] = [
         '#00008b', // Dark Blue
         '#4b0082', // Indigo
@@ -169,6 +171,42 @@ export class MenuState implements GameState {
         }
     }
 
+    private setupMenuPlanes(): void {
+        // Create 4 planes with different colors and patterns
+        const planeColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00];
+        const positions = [
+            new THREE.Vector3(-3, 0, -3),
+            new THREE.Vector3(3, 0, -3),
+            new THREE.Vector3(-3, 0, 3),
+            new THREE.Vector3(3, 0, 3)
+        ];
+        const rotations = [
+            new THREE.Euler(0, 0, 0),
+            new THREE.Euler(0, Math.PI / 2, 0),
+            new THREE.Euler(0, Math.PI, 0),
+            new THREE.Euler(0, -Math.PI / 2, 0)
+        ];
+
+        for (let i = 0; i < 4; i++) {
+            const plane = new MenuPlane(
+                planeColors[i],
+                positions[i],
+                rotations[i],
+                i * Math.PI / 2, // Offset each plane's beat
+                i // Different dance pattern for each plane
+            );
+            this.scene.add(plane.getGroup());
+            this.menuPlanes.push(plane);
+        }
+    }
+
+    private cleanupMenuPlanes(): void {
+        this.menuPlanes.forEach(plane => {
+            this.scene.remove(plane.getGroup());
+        });
+        this.menuPlanes = [];
+    }
+
     private updateMenuDisplay(): void {
         this.menuContainer.innerHTML = `
             <style>
@@ -223,6 +261,7 @@ export class MenuState implements GameState {
 
     async enter(): Promise<void> {
         this.setupBackground();
+        this.setupMenuPlanes();
         this.updateMenuDisplay();
         await this.musicSystem.loadTrack('menu-music.json');
         this.musicSystem.play();
@@ -231,6 +270,7 @@ export class MenuState implements GameState {
 
     exit(): void {
         this.menuContainer.remove();
+        this.cleanupMenuPlanes();
         this.musicSystem.stop();
         this.musicSystem.cleanup();
         this.audioSystem.cleanup();
@@ -247,6 +287,11 @@ export class MenuState implements GameState {
         this.screenControlHandler.update();
         this.joypadHandler.update();
         this.updateBackground();
+        
+        // Update all menu planes
+        this.menuPlanes.forEach(plane => {
+            plane.update(this.musicSystem);
+        });
     }
 
     render(): void {
