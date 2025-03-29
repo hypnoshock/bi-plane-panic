@@ -40,6 +40,8 @@ export class PlayState implements GameState {
     private playerBoundaryTimes: { [key: number]: number } = {}; // Track time each player has been outside boundary
     private lastWarningTimes: { [key: number]: number } = {}; // Track last warning time for each player
     private warningInterval: number = 1; // Time between warnings in seconds
+    private winnerText: HTMLElement | null = null;
+    private gameOver: boolean = false;
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -63,6 +65,24 @@ export class PlayState implements GameState {
         this.collisionSystem = new CollisionSystem(this.bulletSystem, this.explosionSystem);
         this.smokeSystem = new SmokeSystem(this.scene);
         this.starfieldSystem = new StarfieldSystem(this.scene, this.boundaryRadius);
+
+        // Create winner text element
+        this.winnerText = document.createElement('div');
+        this.winnerText.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffd700;
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+        `;
+        document.body.appendChild(this.winnerText);
 
         // Create boundary sphere
         this.boundarySphere = new BoundarySphere();
@@ -287,6 +307,12 @@ export class PlayState implements GameState {
 
         // Clean up starfield
         this.starfieldSystem.cleanup();
+
+        // Remove winner text
+        if (this.winnerText) {
+            this.winnerText.remove();
+            this.winnerText = null;
+        }
     }
 
     private calculateRequiredCameraDistance(): number {
@@ -313,7 +339,36 @@ export class PlayState implements GameState {
         return requiredDistance;
     }
 
+    private checkForWinner(): void {
+        if (this.gameOver) return;
+
+        const alivePlayers = this.players.filter(player => !player.isDead());
+        if (alivePlayers.length === 1) {
+            const winner = alivePlayers[0];
+            this.gameOver = true;
+            
+            // Center the winner
+            winner.getGroup().position.set(0, 0, 0);
+            
+            // Display winner text
+            if (this.winnerText) {
+                this.winnerText.textContent = `Player ${winner.getPlayerNum() + 1} is the winner!`;
+                this.winnerText.style.display = 'block';
+            }
+            
+            // Stop all movement
+            this.playerInputFlags = {};
+            this.players.forEach(player => {
+                if (player !== winner) {
+                    player.setGameOver();
+                }
+            });
+        }
+    }
+
     public update(deltaTime: number): void {
+        if (this.gameOver) return;
+
         // Handle player movements
         this.players.forEach((player, index) => {
             if (player.isDead()) {
@@ -379,6 +434,9 @@ export class PlayState implements GameState {
         this.collisionSystem.update();
         this.smokeSystem.update(deltaTime);
         this.starfieldSystem.update(deltaTime);
+
+        // Check for winner
+        this.checkForWinner();
 
         this.keyboardHandler.update();
         this.screenControlHandler.update();
