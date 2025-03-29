@@ -24,8 +24,8 @@ export class Player {
     private smokeTimer: number = 0;
     private smokeInterval: number = 0.1; // Spawn smoke every 0.1 seconds
     private isOutsideBoundary: boolean = false;
-    private boundaryFlashTimer: number = 0;
-    private boundaryFlashInterval: number = 100; // Flash every 100ms
+    private boundaryFlashStartTime: number = 0;
+    private boundaryFlashInterval: number = 50; // Flash every 25ms for rapid pulsing
 
     constructor(model: GLBModel, playerNum: number) {
         this.model = model;
@@ -55,34 +55,49 @@ export class Player {
         forward.applyQuaternion(this.group.quaternion);
         this.group.position.add(forward.multiplyScalar(this.moveSpeed * deltaTime));
 
-        // Handle flash effect
-        if (this.isFlashing) {
-            const currentTime = Date.now();
-            const elapsed = currentTime - this.flashStartTime;
-            
-            if (elapsed >= this.flashDuration) {
-                this.isFlashing = false;
-                this.model.setColor(this.originalColor);
-            } else {
-                // Alternate between flash color and original color
-                const isWhite = Math.floor(elapsed / 50) % 2 === 0;
-                this.model.setColor(isWhite ? this.flashColor : this.originalColor);
-            }
-        }
-
         // Handle boundary flash effect
         if (this.isOutsideBoundary) {
             const currentTime = Date.now();
-            if (currentTime - this.boundaryFlashTimer >= this.boundaryFlashInterval) {
-                this.boundaryFlashTimer = currentTime;
-                // Alternate between red and original color
-                const isRed = Math.floor(currentTime / this.boundaryFlashInterval) % 2 === 0;
-                this.model.setColor(isRed ? 0xff0000 : this.originalColor);
+            if (!this.boundaryFlashStartTime) {
+                this.boundaryFlashStartTime = currentTime;
             }
-        } else if (this.boundaryFlashTimer > 0) {
-            // Reset color when returning to boundary
-            this.model.setColor(this.originalColor);
-            this.boundaryFlashTimer = 0;
+            
+            // Rapid pulsing flash every 25ms
+            const elapsed = currentTime - this.boundaryFlashStartTime;
+            const flashState = Math.floor(elapsed / this.boundaryFlashInterval) % 2;
+            
+            // Use a bright red color for the flash
+            const flashColor = 0x000000;
+            this.model.setColor(flashState === 0 ? flashColor : this.originalColor);
+            
+            // Force material update
+            this.model.getGroup().traverse((child: THREE.Object3D) => {
+                if (child instanceof THREE.Mesh) {
+                    const material = child.material as THREE.MeshPhongMaterial;
+                    if (material) {
+                        material.needsUpdate = true;
+                    }
+                }
+            });
+        } else {
+            // Only handle damage flash if not outside boundary
+            if (this.isFlashing) {
+                const currentTime = Date.now();
+                const elapsed = currentTime - this.flashStartTime;
+                
+                if (elapsed >= this.flashDuration) {
+                    this.isFlashing = false;
+                    this.model.setColor(this.originalColor);
+                } else {
+                    // Alternate between flash color and original color
+                    const isWhite = Math.floor(elapsed / 50) % 2 === 0;
+                    this.model.setColor(isWhite ? this.flashColor : this.originalColor);
+                }
+            } else {
+                // Reset color when returning to boundary
+                this.model.setColor(this.originalColor);
+                this.boundaryFlashStartTime = 0;
+            }
         }
 
         // Handle smoke effect when energy is low
@@ -193,7 +208,7 @@ export class Player {
         this.isOutsideBoundary = outside;
         if (!outside) {
             this.model.setColor(this.originalColor);
-            this.boundaryFlashTimer = 0;
+            this.boundaryFlashStartTime = 0;
         }
     }
 } 

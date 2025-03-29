@@ -57,7 +57,7 @@ export class GLBModel {
 
     public setColor(color: number): void {
         this.materials.forEach(material => {
-            if (material instanceof THREE.MeshPhongMaterial) {
+            if ('color' in material && material.color instanceof THREE.Color) {
                 material.color.setHex(color);
             }
         });
