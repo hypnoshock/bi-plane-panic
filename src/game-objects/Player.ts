@@ -28,6 +28,7 @@ export class Player {
     private boundaryFlashStartTime: number = 0;
     private boundaryFlashInterval: number = 50; // Flash every 25ms for rapid pulsing
     private explosionSystem: ExplosionSystem | null = null;
+    private onDeathCallback: (() => void) | null = null;
 
     constructor(model: GLBModel, playerNum: number) {
         this.model = model;
@@ -188,6 +189,8 @@ export class Player {
             this.hideShip();
             // Spawn death explosion
             this.explosionSystem?.spawnDeathExplosion(this.getPosition());
+            // Call death callback
+            this.onDeathCallback?.();
         }
     }
 
@@ -218,5 +221,9 @@ export class Player {
             this.model.setColor(this.originalColor);
             this.boundaryFlashStartTime = 0;
         }
+    }
+
+    public setOnDeathCallback(callback: () => void): void {
+        this.onDeathCallback = callback;
     }
 } 

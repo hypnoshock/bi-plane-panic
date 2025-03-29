@@ -54,6 +54,10 @@ export class PlayState implements GameState {
     private countdownTime: number = 3;
     private countdownTimer: number = 0;
     private countdownInterval: number = 1; // Time between countdown numbers in seconds
+    private cameraShakeIntensity: number = 0.5; // Maximum shake distance
+    private cameraShakeDuration: number = 0.5; // Duration of shake in seconds
+    private cameraShakeTime: number = 0; // Current time in shake animation
+    private isCameraShaking: boolean = false;
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -167,6 +171,9 @@ export class PlayState implements GameState {
             player.setBulletSystem(this.bulletSystem);
             player.setSmokeSystem(this.smokeSystem);
             player.setExplosionSystem(this.explosionSystem);
+            
+            // Set up death callback
+            player.setOnDeathCallback(() => this.shakeCamera());
             
             // Calculate position around the boundary
             const angle = (index * 2 * Math.PI) / playerConfigs.length;
@@ -467,6 +474,30 @@ export class PlayState implements GameState {
         }
     }
 
+    private shakeCamera(): void {
+        this.isCameraShaking = true;
+        this.cameraShakeTime = 0;
+    }
+
+    private updateCameraShake(deltaTime: number): void {
+        if (!this.isCameraShaking) return;
+
+        this.cameraShakeTime += deltaTime;
+        if (this.cameraShakeTime >= this.cameraShakeDuration) {
+            this.isCameraShaking = false;
+            return;
+        }
+
+        // Calculate shake intensity (decreases over time)
+        const progress = this.cameraShakeTime / this.cameraShakeDuration;
+        const currentIntensity = this.cameraShakeIntensity * (1 - progress);
+
+        // Apply random offset to camera position
+        this.camera.position.x += (Math.random() - 0.5) * currentIntensity;
+        this.camera.position.y += (Math.random() - 0.5) * currentIntensity;
+        this.camera.position.z += (Math.random() - 0.5) * currentIntensity;
+    }
+
     public update(deltaTime: number): void {
         if (this.countdownState === 'countdown') {
             this.countdownTimer += deltaTime;
@@ -604,6 +635,9 @@ export class PlayState implements GameState {
         this.collisionSystem.update();
         this.smokeSystem.update(deltaTime);
         this.starfieldSystem.update(deltaTime);
+
+        // Update camera shake
+        this.updateCameraShake(deltaTime);
 
         // Check for winner
         this.checkForWinner();
