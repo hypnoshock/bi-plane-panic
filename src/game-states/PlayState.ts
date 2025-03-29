@@ -15,6 +15,7 @@ import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler
 import { SmokeSystem } from '../systems/SmokeSystem';
 import { MusicSystem } from '../systems/MusicSystem';
 import { BoundarySphere } from '../game-objects/BoundarySphere';
+import { StarfieldSystem } from '../systems/StarfieldSystem';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -31,6 +32,7 @@ export class PlayState implements GameState {
     private explosionSystem: ExplosionSystem;
     private collisionSystem: CollisionSystem;
     private smokeSystem: SmokeSystem;
+    private starfieldSystem: StarfieldSystem;
     private boundarySphere: BoundarySphere;
     private targetCameraZ: number = 10;
     private cameraZoomSpeed: number = 2;
@@ -60,6 +62,7 @@ export class PlayState implements GameState {
         this.explosionSystem = new ExplosionSystem(this.scene, this.audioSystem);
         this.collisionSystem = new CollisionSystem(this.bulletSystem, this.explosionSystem);
         this.smokeSystem = new SmokeSystem(this.scene);
+        this.starfieldSystem = new StarfieldSystem(this.scene, this.boundaryRadius);
 
         // Create boundary sphere
         this.boundarySphere = new BoundarySphere();
@@ -281,6 +284,9 @@ export class PlayState implements GameState {
         
         // Remove boundary sphere
         this.scene.remove(this.boundarySphere.getGroup());
+
+        // Clean up starfield
+        this.starfieldSystem.cleanup();
     }
 
     private calculateRequiredCameraDistance(): number {
@@ -372,6 +378,7 @@ export class PlayState implements GameState {
         this.explosionSystem.update(deltaTime);
         this.collisionSystem.update();
         this.smokeSystem.update(deltaTime);
+        this.starfieldSystem.update(deltaTime);
 
         this.keyboardHandler.update();
         this.screenControlHandler.update();
