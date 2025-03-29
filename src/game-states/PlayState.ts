@@ -14,6 +14,7 @@ import { CollisionSystem } from '../systems/CollisionSystem';
 import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
 import { SmokeSystem } from '../systems/SmokeSystem';
 import { MusicSystem } from '../systems/MusicSystem';
+import { BoundarySphere } from '../game-objects/BoundarySphere';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -30,6 +31,9 @@ export class PlayState implements GameState {
     private explosionSystem: ExplosionSystem;
     private collisionSystem: CollisionSystem;
     private smokeSystem: SmokeSystem;
+    private boundarySphere: BoundarySphere;
+    private targetCameraZ: number = 10;
+    private cameraZoomSpeed: number = 2;
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -52,6 +56,10 @@ export class PlayState implements GameState {
         this.explosionSystem = new ExplosionSystem(this.scene, this.audioSystem);
         this.collisionSystem = new CollisionSystem(this.bulletSystem, this.explosionSystem);
         this.smokeSystem = new SmokeSystem(this.scene);
+
+        // Create boundary sphere
+        this.boundarySphere = new BoundarySphere();
+        this.scene.add(this.boundarySphere.getGroup());
 
         // Create player 1 with a blue plane model
         const planeModel1 = new GLBModel('assets/bi-plane.glb', 0x4169e1);
@@ -268,6 +276,33 @@ export class PlayState implements GameState {
 
         // Remove players
         this.players.forEach(player => this.scene.remove(player.getGroup()));
+        
+        // Remove boundary sphere
+        this.scene.remove(this.boundarySphere.getGroup());
+    }
+
+    private calculateRequiredCameraDistance(): number {
+        // Calculate the center of the playfield
+        const center = new THREE.Vector3(0, 0, 0);
+        
+        // Find the furthest distance from center to any player
+        let maxDistance = 0;
+        this.players.forEach(player => {
+            const position = player.getGroup().position;
+            const distance = position.distanceTo(center);
+            maxDistance = Math.max(maxDistance, distance);
+        });
+
+        // Calculate the required camera distance based on the field of view
+        const fov = this.camera.fov * (Math.PI / 180);
+        const aspectRatio = this.renderer.getSize(new THREE.Vector2()).x / this.renderer.getSize(new THREE.Vector2()).y;
+        
+        // Add some padding to ensure players aren't too close to the edges
+        const padding = 3;
+        const requiredDistance = (maxDistance + padding) / Math.tan(fov / 2);
+
+        // Return the required distance
+        return requiredDistance;
     }
 
     public update(deltaTime: number): void {
@@ -281,6 +316,15 @@ export class PlayState implements GameState {
             if (flags.shoot) player.shoot(deltaTime);
             player.update(deltaTime);
         });
+
+        // Update camera position
+        const requiredDistance = this.calculateRequiredCameraDistance();
+        this.targetCameraZ = requiredDistance;
+        
+        // Smoothly interpolate camera position
+        const currentZ = this.camera.position.z;
+        const newZ = THREE.MathUtils.lerp(currentZ, this.targetCameraZ, deltaTime * this.cameraZoomSpeed);
+        this.camera.position.z = newZ;
 
         // Update systems
         this.bulletSystem.update(deltaTime);

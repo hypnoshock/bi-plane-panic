@@ -67,6 +67,8 @@ export class Player {
             }
         }
 
+        console.log(this.group.position);
+
         // Handle smoke effect when energy is low
         if (this.energy === 1 && this.smokeSystem) {
             this.smokeTimer += deltaTime;
