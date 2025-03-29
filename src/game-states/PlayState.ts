@@ -42,6 +42,9 @@ export class PlayState implements GameState {
     private warningInterval: number = 1; // Time between warnings in seconds
     private winnerText: HTMLElement | null = null;
     private gameOver: boolean = false;
+    private winner: Player | null = null;
+    private winnerCameraDistance: number = 3; // Closer distance to view winner
+    private cameraTargetPosition: THREE.Vector3 | null = null;
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -344,22 +347,19 @@ export class PlayState implements GameState {
 
         const alivePlayers = this.players.filter(player => !player.isDead());
         if (alivePlayers.length === 1) {
-            const winner = alivePlayers[0];
+            this.winner = alivePlayers[0];
             this.gameOver = true;
-            
-            // Center the winner
-            winner.getGroup().position.set(0, 0, 0);
             
             // Display winner text
             if (this.winnerText) {
-                this.winnerText.textContent = `Player ${winner.getPlayerNum() + 1} is the winner!`;
+                this.winnerText.textContent = `Player ${this.winner.getPlayerNum() + 1} is the winner!`;
                 this.winnerText.style.display = 'block';
             }
             
             // Stop all movement
             this.playerInputFlags = {};
             this.players.forEach(player => {
-                if (player !== winner) {
+                if (player !== this.winner) {
                     player.setGameOver();
                 }
             });
@@ -367,7 +367,35 @@ export class PlayState implements GameState {
     }
 
     public update(deltaTime: number): void {
-        if (this.gameOver) return;
+        if (this.gameOver) {
+            // When game is over, smoothly move camera to winner's position and zoom in
+            if (this.winner) {
+                const winnerPosition = this.winner.getPosition();
+                
+                // Set target position if not set yet
+                if (!this.cameraTargetPosition) {
+                    this.cameraTargetPosition = winnerPosition.clone();
+                }
+                
+                // Smoothly move camera to winner's position
+                this.camera.position.x = THREE.MathUtils.lerp(
+                    this.camera.position.x,
+                    this.cameraTargetPosition.x,
+                    deltaTime * this.cameraZoomSpeed
+                );
+                this.camera.position.y = THREE.MathUtils.lerp(
+                    this.camera.position.y,
+                    this.cameraTargetPosition.y,
+                    deltaTime * this.cameraZoomSpeed
+                );
+                
+                // Smoothly zoom in
+                const currentZ = this.camera.position.z;
+                const newZ = THREE.MathUtils.lerp(currentZ, this.winnerCameraDistance, deltaTime * this.cameraZoomSpeed);
+                this.camera.position.z = newZ;
+            }
+            return;
+        }
 
         // Handle player movements
         this.players.forEach((player, index) => {
