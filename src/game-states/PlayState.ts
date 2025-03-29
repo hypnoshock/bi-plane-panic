@@ -53,6 +53,7 @@ export class PlayState implements GameState {
     private countdownTime: number = 3;
     private countdownTimer: number = 0;
     private countdownInterval: number = 1; // Time between countdown numbers in seconds
+    private playerNameLabels: HTMLElement[] = []; // Array to store player name labels
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -78,6 +79,26 @@ export class PlayState implements GameState {
         this.smokeSystem = new SmokeSystem(this.scene);
         this.starfieldSystem = new StarfieldSystem(this.scene, this.boundaryRadius);
         this.debrisSystem = new DebrisSystem(this.scene);
+
+        // Create player name labels
+        this.players.forEach((player, index) => {
+            const label = document.createElement('div');
+            label.style.cssText = `
+                position: absolute;
+                color: ${index === 0 ? '#4169e1' : index === 1 ? '#ff0000' : '#800080'};
+                font-size: 24px;
+                font-weight: bold;
+                text-align: center;
+                display: none;
+                z-index: 1000;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                font-family: Arial, sans-serif;
+                pointer-events: none;
+            `;
+            label.textContent = `Player ${index + 1}${index === 0 ? ' (You)' : ' (CPU)'}`;
+            document.body.appendChild(label);
+            this.playerNameLabels.push(label);
+        });
 
         // Create countdown text element
         this.countdownText = document.createElement('div');
@@ -345,6 +366,13 @@ export class PlayState implements GameState {
         this.countdownState = 'countdown';
         this.countdownTime = 3;
         this.countdownTimer = 0;
+        
+        // Show player name labels
+        this.playerNameLabels.forEach(label => label.style.display = 'block');
+        
+        // Set camera to a wider view during countdown
+        this.camera.position.z = this.boundaryRadius * 2.5; // Zoom out to show all players
+        
         if (this.countdownText) {
             this.countdownText.style.display = 'block';
             this.countdownText.textContent = this.countdownTime.toString();
@@ -389,6 +417,10 @@ export class PlayState implements GameState {
             this.countdownText.remove();
             this.countdownText = null;
         }
+
+        // Clean up player name labels
+        this.playerNameLabels.forEach(label => label.remove());
+        this.playerNameLabels = [];
 
         // Clean up
         this.starfieldSystem.cleanup();
@@ -465,14 +497,28 @@ export class PlayState implements GameState {
         if (this.countdownState === 'countdown') {
             this.countdownTimer += deltaTime;
             
+            // Update player name label positions
+            this.players.forEach((player, index) => {
+                const label = this.playerNameLabels[index];
+                if (label) {
+                    const position = player.getPosition();
+                    const screenPosition = position.clone();
+                    screenPosition.project(this.camera);
+                    
+                    const x = (screenPosition.x + 1) * window.innerWidth / 2;
+                    const y = (-screenPosition.y + 1) * window.innerHeight / 2;
+                    
+                    label.style.left = `${x}px`;
+                    label.style.top = `${y - 40}px`; // Offset above the plane
+                }
+            });
+            
             if (this.countdownTimer >= this.countdownInterval) {
                 this.countdownTimer = 0;
                 this.countdownTime--;
                 
                 if (this.countdownText) {
                     this.countdownText.textContent = this.countdownTime.toString();
-                    // Play countdown sound
-                    // this.audioSystem.playKick(this.audioSystem.getAudioContext().currentTime);
                     this.audioSystem.playWarning();
                 }
                 
@@ -486,6 +532,8 @@ export class PlayState implements GameState {
                             if (this.countdownText) {
                                 this.countdownText.style.display = 'none';
                             }
+                            // Hide player name labels
+                            this.playerNameLabels.forEach(label => label.style.display = 'none');
                         }, 500);
                     }
                     // Start the music

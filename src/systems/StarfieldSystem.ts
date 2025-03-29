@@ -6,6 +6,8 @@ export class StarfieldSystem {
     private boundaryRadius: number;
     private particlePositions: Float32Array;
     private particleVelocities: Float32Array;
+    private minSpeed: number = 2;
+    private maxSpeed: number = 4;
 
     constructor(scene: THREE.Scene, boundaryRadius: number) {
         this.boundaryRadius = boundaryRadius;
@@ -27,7 +29,7 @@ export class StarfieldSystem {
             this.particlePositions[i3 + 2] = 0;
             
             // Random velocity
-            const speed = 0.1 + Math.random() * 0.2;
+            const speed = this.minSpeed + Math.random() * (this.maxSpeed - this.minSpeed);
             this.particleVelocities[i3] = -Math.cos(angle) * speed;
             this.particleVelocities[i3 + 1] = -Math.sin(angle) * speed;
             this.particleVelocities[i3 + 2] = 0;
@@ -72,7 +74,7 @@ export class StarfieldSystem {
                 positions[i3 + 1] = Math.sin(angle) * newDistance;
                 
                 // Update velocity
-                const speed = 2 + Math.random() * 4;
+                const speed = this.minSpeed + Math.random() * (this.maxSpeed - this.minSpeed);
                 this.particleVelocities[i3] = -Math.cos(angle) * speed;
                 this.particleVelocities[i3 + 1] = -Math.sin(angle) * speed;
             }
