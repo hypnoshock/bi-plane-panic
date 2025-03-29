@@ -472,7 +472,8 @@ export class PlayState implements GameState {
                 if (this.countdownText) {
                     this.countdownText.textContent = this.countdownTime.toString();
                     // Play countdown sound
-                    this.audioSystem.playKick(this.audioSystem.getAudioContext().currentTime);
+                    // this.audioSystem.playKick(this.audioSystem.getAudioContext().currentTime);
+                    this.audioSystem.playWarning();
                 }
                 
                 if (this.countdownTime <= 0) {
@@ -480,7 +481,7 @@ export class PlayState implements GameState {
                     this.countdownState = 'playing';
                     if (this.countdownText) {
                         this.countdownText.textContent = 'GO!';
-                        this.audioSystem.playExplosion();
+                        this.audioSystem.playDeathExplosion();
                         setTimeout(() => {
                             if (this.countdownText) {
                                 this.countdownText.style.display = 'none';
