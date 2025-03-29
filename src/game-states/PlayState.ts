@@ -41,6 +41,7 @@ export class PlayState implements GameState {
     private lastWarningTimes: { [key: number]: number } = {}; // Track last warning time for each player
     private warningInterval: number = 1; // Time between warnings in seconds
     private winnerText: HTMLElement | null = null;
+    private menuReturnText: HTMLElement | null = null;
     private gameOver: boolean = false;
     private winner: Player | null = null;
     private winnerCameraDistance: number = 3; // Closer distance to view winner
@@ -86,6 +87,25 @@ export class PlayState implements GameState {
             font-family: Arial, sans-serif;
         `;
         document.body.appendChild(this.winnerText);
+
+        // Create menu return text element
+        this.menuReturnText = document.createElement('div');
+        this.menuReturnText.style.cssText = `
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff0000;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+        `;
+        this.menuReturnText.textContent = 'Press B button to return to menu';
+        document.body.appendChild(this.menuReturnText);
 
         // Create boundary sphere
         this.boundarySphere = new BoundarySphere();
@@ -195,6 +215,17 @@ export class PlayState implements GameState {
     }
 
     private handleInput(event: string, isPress: boolean): void {
+        // Handle menu return during win state
+        if (this.gameOver && event === 'button2' && isPress) {
+            const menuState = new MenuState(this.scene, this.camera, this.renderer);
+            menuState.setGameStateManager(this.gameStateManager);
+            this.gameStateManager.setState(menuState);
+            return;
+        }
+
+        // Only handle other inputs if not in win state
+        if (this.gameOver) return;
+
         // Player 1 controls (keyboard/screen)
         if (event.startsWith('player1_')) {
             const action = event.replace('player1_', '');
@@ -258,12 +289,6 @@ export class PlayState implements GameState {
                     break;
             }
         }
-        // Menu control
-        else if (event === 'button2' && isPress) {
-            const menuState = new MenuState(this.scene, this.camera, this.renderer);
-            menuState.setGameStateManager(this.gameStateManager);
-            this.gameStateManager.setState(menuState);
-        }
     }
 
     public setGameStateManager(manager: GameStateManager): void {
@@ -311,10 +336,14 @@ export class PlayState implements GameState {
         // Clean up starfield
         this.starfieldSystem.cleanup();
 
-        // Remove winner text
+        // Remove UI elements
         if (this.winnerText) {
             this.winnerText.remove();
             this.winnerText = null;
+        }
+        if (this.menuReturnText) {
+            this.menuReturnText.remove();
+            this.menuReturnText = null;
         }
     }
 
@@ -354,6 +383,11 @@ export class PlayState implements GameState {
             if (this.winnerText) {
                 this.winnerText.textContent = `Player ${this.winner.getPlayerNum() + 1} is the winner!`;
                 this.winnerText.style.display = 'block';
+            }
+
+            // Display menu return text
+            if (this.menuReturnText) {
+                this.menuReturnText.style.display = 'block';
             }
             
             // Stop all movement
