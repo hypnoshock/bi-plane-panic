@@ -4,8 +4,8 @@ import * as THREE from 'three';
 export class Explosion {
     private model: ExplosionModel;
 
-    constructor() {
-        this.model = new ExplosionModel();
+    constructor(isDeathExplosion: boolean = false) {
+        this.model = new ExplosionModel(isDeathExplosion);
     }
 
     public getModel(): ExplosionModel {

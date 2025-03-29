@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLBModel } from '../assets/game-models/GLBModel';
 import { BulletSystem } from '../systems/BulletSystem';
 import { SmokeSystem } from '../systems/SmokeSystem';
+import { ExplosionSystem } from '../systems/ExplosionSystem';
 
 export class Player {
     private model: GLBModel;
@@ -26,6 +27,7 @@ export class Player {
     private isOutsideBoundary: boolean = false;
     private boundaryFlashStartTime: number = 0;
     private boundaryFlashInterval: number = 50; // Flash every 25ms for rapid pulsing
+    private explosionSystem: ExplosionSystem | null = null;
 
     constructor(model: GLBModel, playerNum: number) {
         this.model = model;
@@ -44,6 +46,10 @@ export class Player {
 
     public setSmokeSystem(smokeSystem: SmokeSystem): void {
         this.smokeSystem = smokeSystem;
+    }
+
+    public setExplosionSystem(explosionSystem: ExplosionSystem): void {
+        this.explosionSystem = explosionSystem;
     }
 
     public update(deltaTime: number): void {
@@ -180,6 +186,8 @@ export class Player {
         if (this.energy <= 0) {
             this.isGameOver = true;
             this.hideShip();
+            // Spawn death explosion
+            this.explosionSystem?.spawnDeathExplosion(this.getPosition());
         }
     }
 

@@ -13,13 +13,25 @@ export class ExplosionSystem {
     }
 
     public spawnExplosion(position: THREE.Vector3): void {
-        const explosion = new Explosion();
+        const explosion = new Explosion(false); // false for hit explosion
         explosion.setPosition(position.x, position.y, position.z);
         this.scene.add(explosion.getGroup());
         this.explosions.push(explosion);
         
-        // Play explosion sound effect
-        this.audioSystem.playExplosion();
+        // Play hit explosion sound effect
+        this.audioSystem.playHitExplosion();
+        
+        console.log('Current active explosions:', this.explosions.length);
+    }
+
+    public spawnDeathExplosion(position: THREE.Vector3): void {
+        const explosion = new Explosion(true); // true for death explosion
+        explosion.setPosition(position.x, position.y, position.z);
+        this.scene.add(explosion.getGroup());
+        this.explosions.push(explosion);
+        
+        // Play death explosion sound effect
+        this.audioSystem.playDeathExplosion();
         
         console.log('Current active explosions:', this.explosions.length);
     }

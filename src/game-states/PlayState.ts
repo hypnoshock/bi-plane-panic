@@ -70,6 +70,7 @@ export class PlayState implements GameState {
         const player1 = new Player(planeModel1, 0);
         player1.setBulletSystem(this.bulletSystem);
         player1.setSmokeSystem(this.smokeSystem);
+        player1.setExplosionSystem(this.explosionSystem);
         player1.getGroup().position.set(-5, 0, 0); // Position on the left
         scene.add(player1.getGroup());
         this.players.push(player1);
@@ -86,6 +87,7 @@ export class PlayState implements GameState {
         const player2 = new Player(planeModel2, 1);
         player2.setBulletSystem(this.bulletSystem);
         player2.setSmokeSystem(this.smokeSystem);
+        player2.setExplosionSystem(this.explosionSystem);
         player2.getGroup().position.set(5, 0, 0); // Position on the right
         scene.add(player2.getGroup());
         this.players.push(player2);
@@ -102,6 +104,7 @@ export class PlayState implements GameState {
         const player3 = new Player(planeModel3, 2);
         player3.setBulletSystem(this.bulletSystem);
         player3.setSmokeSystem(this.smokeSystem);
+        player3.setExplosionSystem(this.explosionSystem);
         player3.getGroup().position.set(0, -5, 0); // Position at bottom middle
         scene.add(player3.getGroup());
         this.players.push(player3);
@@ -346,6 +349,7 @@ export class PlayState implements GameState {
 
                 // Kill player if they've been outside for 3 seconds
                 if (this.playerBoundaryTimes[index] >= 3) {
+                    player.takeDamage();
                     player.takeDamage();
                     player.takeDamage(); // Call twice to reduce energy to 0
                     this.playerBoundaryTimes[index] = 0; // Reset the timer
