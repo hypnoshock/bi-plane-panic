@@ -48,6 +48,11 @@ export class PlayState implements GameState {
     private winnerCameraDistance: number = 3; // Closer distance to view winner
     private cameraTargetPosition: THREE.Vector3 | null = null;
     private debrisSystem: DebrisSystem;
+    private countdownText: HTMLElement | null = null;
+    private countdownState: 'countdown' | 'playing' = 'countdown';
+    private countdownTime: number = 3;
+    private countdownTimer: number = 0;
+    private countdownInterval: number = 1; // Time between countdown numbers in seconds
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -73,6 +78,36 @@ export class PlayState implements GameState {
         this.smokeSystem = new SmokeSystem(this.scene);
         this.starfieldSystem = new StarfieldSystem(this.scene, this.boundaryRadius);
         this.debrisSystem = new DebrisSystem(this.scene);
+
+        // Create countdown text element
+        this.countdownText = document.createElement('div');
+        this.countdownText.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffd700;
+            font-size: 120px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+            animation: pulse 0.5s ease-in-out;
+        `;
+        document.body.appendChild(this.countdownText);
+
+        // Add pulse animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: translate(-50%, -50%) scale(1); }
+                50% { transform: translate(-50%, -50%) scale(1.2); }
+                100% { transform: translate(-50%, -50%) scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
 
         // Create winner text element
         this.winnerText = document.createElement('div');
@@ -306,9 +341,17 @@ export class PlayState implements GameState {
     public async enter(): Promise<void> {
         this.setupBackground();
 
-        // Load and play game music
+        // Start countdown
+        this.countdownState = 'countdown';
+        this.countdownTime = 3;
+        this.countdownTimer = 0;
+        if (this.countdownText) {
+            this.countdownText.style.display = 'block';
+            this.countdownText.textContent = this.countdownTime.toString();
+        }
+        
+        // Load game music but don't play it yet
         await this.musicSystem.loadTrack('game-music.json');
-        this.musicSystem.play();
         
         // Show controls only on mobile devices
         if (this.isMobileDevice()) {
@@ -340,6 +383,12 @@ export class PlayState implements GameState {
         
         // Remove boundary sphere
         this.scene.remove(this.boundarySphere.getGroup());
+
+        // Clean up countdown text
+        if (this.countdownText) {
+            this.countdownText.remove();
+            this.countdownText = null;
+        }
 
         // Clean up
         this.starfieldSystem.cleanup();
@@ -413,6 +462,38 @@ export class PlayState implements GameState {
     }
 
     public update(deltaTime: number): void {
+        if (this.countdownState === 'countdown') {
+            this.countdownTimer += deltaTime;
+            
+            if (this.countdownTimer >= this.countdownInterval) {
+                this.countdownTimer = 0;
+                this.countdownTime--;
+                
+                if (this.countdownText) {
+                    this.countdownText.textContent = this.countdownTime.toString();
+                    // Play countdown sound
+                    this.audioSystem.playKick(this.audioSystem.getAudioContext().currentTime);
+                }
+                
+                if (this.countdownTime <= 0) {
+                    // Start the game
+                    this.countdownState = 'playing';
+                    if (this.countdownText) {
+                        this.countdownText.textContent = 'GO!';
+                        this.audioSystem.playExplosion();
+                        setTimeout(() => {
+                            if (this.countdownText) {
+                                this.countdownText.style.display = 'none';
+                            }
+                        }, 500);
+                    }
+                    // Start the music
+                    this.musicSystem.play();
+                }
+            }
+            return;
+        }
+
         if (this.gameOver) {
             // When game is over, smoothly move camera to winner's position and zoom in
             if (this.winner) {
