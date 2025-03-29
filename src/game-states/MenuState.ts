@@ -22,6 +22,26 @@ export class MenuState implements GameState {
     private backgroundTexture: THREE.CanvasTexture | null = null;
     private audioSystem: AudioSystem;
     private musicSystem: MusicSystem;
+    private lastBeat: number = 0;
+    private colorIndex: number = 0;
+    private colors: string[] = [
+        '#00008b', // Dark Blue
+        '#4b0082', // Indigo
+        '#800080', // Purple
+        '#8b0000', // Dark Red
+        '#006400', // Dark Green
+        '#483d8b', // Dark Slate Blue
+        '#8b4513', // Saddle Brown
+        '#2f4f4f', // Dark Slate Gray
+        '#8b008b', // Dark Magenta
+        '#008b8b', // Dark Cyan
+        '#8b0000', // Dark Red
+        '#006400', // Dark Green
+        '#483d8b', // Dark Slate Blue
+        '#8b4513', // Saddle Brown
+        '#2f4f4f', // Dark Slate Gray
+        '#8b008b'  // Dark Magenta
+    ];
 
     constructor(scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer) {
         this.scene = scene;
@@ -38,16 +58,42 @@ export class MenuState implements GameState {
         canvas.width = 2;
         canvas.height = 512;
         if (context) {
-            const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#000000');  // black
-            gradient.addColorStop(1, '#00008b');  // dark blue
-            context.fillStyle = gradient;
-            context.fillRect(0, 0, canvas.width, canvas.height);
+            this.updateBackgroundGradient(context);
         }
 
         this.backgroundTexture = new THREE.CanvasTexture(canvas);
         this.backgroundTexture.needsUpdate = true;
         this.scene.background = this.backgroundTexture;
+    }
+
+    private updateBackgroundGradient(context: CanvasRenderingContext2D): void {
+        const gradient = context.createLinearGradient(0, 0, 0, 512);
+        const currentColor = this.colors[this.colorIndex];
+        const nextColor = this.colors[(this.colorIndex + 1) % this.colors.length];
+        
+        gradient.addColorStop(0, '#000000');  // Always black at top
+        gradient.addColorStop(0.5, currentColor);
+        gradient.addColorStop(1, nextColor);
+        
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, 2, 512);
+    }
+
+    private updateBackground(): void {
+        if (this.backgroundTexture && this.musicSystem.getCurrentBeat() !== this.lastBeat) {
+            this.lastBeat = this.musicSystem.getCurrentBeat();
+            this.colorIndex = (this.colorIndex + 1) % this.colors.length;
+            
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 2;
+            canvas.height = 512;
+            if (context) {
+                this.updateBackgroundGradient(context);
+                this.backgroundTexture.image = canvas;
+                this.backgroundTexture.needsUpdate = true;
+            }
+        }
     }
 
     private setupMenu(): void {
@@ -149,7 +195,7 @@ export class MenuState implements GameState {
                     color: #ff6666;
                 }
             </style>
-            <div class="title">Game Template</div>
+            <div class="title">Bi-Plane Panic</div>
             ${this.options.map((option, index) => 
                 `<div class="menu-item" 
                     style="${index === this.selectedOption ? 'color: #ff0000;' : ''}"
@@ -200,6 +246,7 @@ export class MenuState implements GameState {
         this.keyboardHandler.update();
         this.screenControlHandler.update();
         this.joypadHandler.update();
+        this.updateBackground();
     }
 
     render(): void {

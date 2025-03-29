@@ -244,4 +244,13 @@ export class MusicSystem {
             this.audioSystem.clearReadyCallback();
         }
     }
+
+    public getCurrentBeat(): number {
+        if (!this.isPlaying || !this.currentTrack) return 0;
+        
+        const currentTime = this.audioSystem.getAudioContext().currentTime;
+        const elapsedTime = currentTime - this.startTime;
+        const beatsPerSecond = this.currentTrack.bpm / 60;
+        return Math.floor(elapsedTime * beatsPerSecond);
+    }
 } 
