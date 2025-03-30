@@ -153,7 +153,10 @@ export class PortalState implements GameState {
 
         // Create front row of buildings
         for (let i = 0; i < buildingCount; i++) {
-            const building = new THREE.Mesh(
+            const building = new THREE.Group();
+            
+            // Main building body
+            const buildingBody = new THREE.Mesh(
                 new THREE.BoxGeometry(buildingWidth, buildingHeight, buildingDepth),
                 new THREE.MeshPhongMaterial({
                     color: 0x2c3e50,
@@ -161,10 +164,47 @@ export class PortalState implements GameState {
                     shininess: 30
                 })
             );
+            building.add(buildingBody);
 
             // Randomize building height and position
             const height = buildingHeight * (0.5 + Math.random() * 0.5);
             building.scale.y = height / buildingHeight;
+
+            // Add windows
+            const windowRows = Math.floor((height / buildingHeight) * 5); // 5 rows for full height
+            const windowCols = 3; // 3 windows per row
+            const windowWidth = 1;
+            const windowHeight = 1.5;
+            const windowDepth = 0.1;
+            const windowSpacing = 2;
+            const windowMaterial = new THREE.MeshPhongMaterial({
+                color: 0xffff00,
+                emissive: 0xffff00,
+                emissiveIntensity: 0.5,
+                shininess: 100
+            });
+
+            for (let row = 0; row < windowRows; row++) {
+                for (let col = 0; col < windowCols; col++) {
+                    const window = new THREE.Mesh(
+                        new THREE.BoxGeometry(windowWidth, windowHeight, windowDepth),
+                        windowMaterial
+                    );
+                    
+                    // Position windows on both front and back faces
+                    const xOffset = (col - 1) * windowSpacing;
+                    const yOffset = (row - windowRows/2) * windowSpacing;
+                    
+                    // Front face windows
+                    window.position.set(xOffset, yOffset, buildingDepth/2 + windowDepth/2);
+                    building.add(window.clone());
+                    
+                    // Back face windows
+                    window.position.z = -buildingDepth/2 - windowDepth/2;
+                    building.add(window);
+                }
+            }
+
             building.position.set(
                 (i - buildingCount / 2) * buildingSpacing,
                 height / 2 - 8,
@@ -176,7 +216,10 @@ export class PortalState implements GameState {
 
         // Create back row of buildings (further away and slightly smaller)
         for (let i = 0; i < buildingCount; i++) {
-            const building = new THREE.Mesh(
+            const building = new THREE.Group();
+            
+            // Main building body
+            const buildingBody = new THREE.Mesh(
                 new THREE.BoxGeometry(buildingWidth * 0.8, buildingHeight * 0.8, buildingDepth * 0.8),
                 new THREE.MeshPhongMaterial({
                     color: 0x1a252f,
@@ -184,10 +227,47 @@ export class PortalState implements GameState {
                     shininess: 30
                 })
             );
+            building.add(buildingBody);
 
             // Randomize building height and position
             const height = buildingHeight * 0.8 * (0.5 + Math.random() * 0.5);
             building.scale.y = height / (buildingHeight * 0.8);
+
+            // Add windows
+            const windowRows = Math.floor((height / buildingHeight) * 4); // 4 rows for back buildings
+            const windowCols = 2; // 2 windows per row for back buildings
+            const windowWidth = 0.8;
+            const windowHeight = 1.2;
+            const windowDepth = 0.1;
+            const windowSpacing = 1.6;
+            const windowMaterial = new THREE.MeshPhongMaterial({
+                color: 0xffff00,
+                emissive: 0xffff00,
+                emissiveIntensity: 0.3, // Less bright for back buildings
+                shininess: 100
+            });
+
+            for (let row = 0; row < windowRows; row++) {
+                for (let col = 0; col < windowCols; col++) {
+                    const window = new THREE.Mesh(
+                        new THREE.BoxGeometry(windowWidth, windowHeight, windowDepth),
+                        windowMaterial
+                    );
+                    
+                    // Position windows on both front and back faces
+                    const xOffset = (col - 0.5) * windowSpacing;
+                    const yOffset = (row - windowRows/2) * windowSpacing;
+                    
+                    // Front face windows
+                    window.position.set(xOffset, yOffset, buildingDepth * 0.8/2 + windowDepth/2);
+                    building.add(window.clone());
+                    
+                    // Back face windows
+                    window.position.z = -buildingDepth * 0.8/2 - windowDepth/2;
+                    building.add(window);
+                }
+            }
+
             building.position.set(
                 (i - buildingCount / 2) * buildingSpacing,
                 height / 2 - 8,
@@ -341,7 +421,8 @@ export class PortalState implements GameState {
                 .title {
                     font-size: 12vh;
                     font-weight: bold;
-                    margin-bottom: 2vh;
+                    margin-top: 8vh;
+                    margin-bottom:0vh;
                     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
                     animation: gentleRotate 3s ease-in-out infinite;
                     display: inline-block;
@@ -353,7 +434,8 @@ export class PortalState implements GameState {
                 }
             </style>
             <div class="title">Bi-Plane Panic</div>
-            <div class="instructions">WASD to move. Space = Button A Enter = Button B</div>
+            <div class="instructions">WASD to move.</br>Space = Button A</br>Enter = Button B</div>
+            <div class="instructions" style="color: #ff0000">Move your plane left or right to choose your portal.</div>
         `;
     }
 
@@ -415,8 +497,10 @@ export class PortalState implements GameState {
         // Player movement
         if (this.playerInputFlags[0].left) {
             this.player.getGroup().position.x -= this.moveSpeed * deltaTime;
+            this.player.getGroup().rotation.y = Math.PI;
         } else if (this.playerInputFlags[0].right) {
             this.player.getGroup().position.x += this.moveSpeed * deltaTime;
+            this.player.getGroup().rotation.y = Math.PI * 2;
         }
 
         // Check for portal collisions
