@@ -8,6 +8,8 @@ import { PlayState } from './PlayState';
 import { Player } from '../game-objects/Player';
 import { GLBModel } from '../assets/game-models/GLBModel';
 import { StarfieldSystem } from '../systems/StarfieldSystem';
+import { AudioSystem } from '../systems/AudioSystem';
+import { MusicSystem } from '../systems/MusicSystem';
 
 export class PortalState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -26,12 +28,17 @@ export class PortalState implements GameState {
     private portalLabels: { left: HTMLElement; right: HTMLElement };
     private cityscape: THREE.Group;
     private flyingPlanes: THREE.Mesh[] = [];
+    private audioSystem: AudioSystem;
+    private musicSystem: MusicSystem;
 
     constructor(
         private scene: THREE.Scene,
         private camera: THREE.PerspectiveCamera,
         private renderer: THREE.WebGLRenderer
     ) {
+        this.audioSystem = new AudioSystem();
+        this.musicSystem = new MusicSystem(this.audioSystem);
+        
         // Create player
         const planeModel = new GLBModel('assets/bi-plane2.glb');
         this.player = new Player(planeModel, 0, { color: 0x4169e1, isCPU: false });
@@ -109,8 +116,8 @@ export class PortalState implements GameState {
 
         // Initialize localized starfield systems for each portal
         this.portalStarfields = {
-            left: new StarfieldSystem(this.scene, 2, this.leftPortal.position),
-            right: new StarfieldSystem(this.scene, 2, this.rightPortal.position)
+            left: new StarfieldSystem(this.scene, 2.5, this.leftPortal.position),
+            right: new StarfieldSystem(this.scene, 2.5, this.rightPortal.position)
         };
 
         // Position camera
@@ -124,6 +131,7 @@ export class PortalState implements GameState {
         const buildingHeight = 15;
         const buildingDepth = 8;
 
+        // Create front row of buildings
         for (let i = 0; i < buildingCount; i++) {
             const building = new THREE.Mesh(
                 new THREE.BoxGeometry(buildingWidth, buildingHeight, buildingDepth),
@@ -141,6 +149,29 @@ export class PortalState implements GameState {
                 (i - buildingCount / 2) * buildingSpacing,
                 height / 2 - 8,
                 -20
+            );
+
+            this.cityscape.add(building);
+        }
+
+        // Create back row of buildings (further away and slightly smaller)
+        for (let i = 0; i < buildingCount; i++) {
+            const building = new THREE.Mesh(
+                new THREE.BoxGeometry(buildingWidth * 0.8, buildingHeight * 0.8, buildingDepth * 0.8),
+                new THREE.MeshPhongMaterial({
+                    color: 0x1a252f,
+                    emissive: 0x0f1419,
+                    shininess: 30
+                })
+            );
+
+            // Randomize building height and position
+            const height = buildingHeight * 0.8 * (0.5 + Math.random() * 0.5);
+            building.scale.y = height / (buildingHeight * 0.8);
+            building.position.set(
+                (i - buildingCount / 2) * buildingSpacing,
+                height / 2 - 8,
+                -40
             );
 
             this.cityscape.add(building);
@@ -274,6 +305,8 @@ export class PortalState implements GameState {
         } else {
             this.screenControlHandler.hideControls();
         }
+        await this.musicSystem.loadTrack('menu-music.json');
+        this.musicSystem.play();
     }
 
     private isMobileDevice(): boolean {
@@ -312,6 +345,11 @@ export class PortalState implements GameState {
             this.backgroundTexture = null;
         }
         this.scene.background = null;
+
+        // Clean up music system
+        this.musicSystem.stop();
+        this.musicSystem.cleanup();
+        this.audioSystem.cleanup();
     }
 
     public update(deltaTime: number): void {
