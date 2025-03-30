@@ -10,6 +10,9 @@ import { GLBModel } from '../assets/game-models/GLBModel';
 import { StarfieldSystem } from '../systems/StarfieldSystem';
 import { AudioSystem } from '../systems/AudioSystem';
 import { MusicSystem } from '../systems/MusicSystem';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 
 export class PortalState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -44,6 +47,7 @@ export class PortalState implements GameState {
         currentTargetScale: number;
         lastBeat: number;
     }> = [];
+    private startText: THREE.Mesh | null = null;
 
     constructor(
         private scene: THREE.Scene,
@@ -148,6 +152,38 @@ export class PortalState implements GameState {
 
         this.runwayMarking.position.set(10, 0, 0);
         this.scene.add(this.runwayMarking);
+
+        // Create START text
+        const fontLoader = new FontLoader();
+        fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font: Font) => {
+            const textGeometry = new TextGeometry('START', {
+                font: font,
+                size: 1,
+                depth: 0.1,
+                curveSegments: 2,
+                bevelEnabled: false
+            });
+            
+            const textMaterial = new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+                emissive: 0xffffff,
+                emissiveIntensity: 0.5,
+                shininess: 100
+            });
+            
+            this.startText = new THREE.Mesh(textGeometry, textMaterial);
+            
+            // Center the text
+            textGeometry.computeBoundingBox();
+            const textWidth = textGeometry.boundingBox!.max.x - textGeometry.boundingBox!.min.x;
+            this.startText.position.set(9, -7.9, 2); // Position to the right of the centerline
+            
+            // Rotate to lay flat on the ground
+            this.startText.rotation.x = -Math.PI / 2;
+            this.startText.rotation.z = Math.PI / 2;
+            
+            this.scene.add(this.startText);
+        });
 
         // Add enhanced portal glow effects
         // Inner glow
@@ -548,6 +584,11 @@ export class PortalState implements GameState {
         
         // Remove runway marking
         this.scene.remove(this.runwayMarking);
+        
+        // Remove START text
+        if (this.startText) {
+            this.scene.remove(this.startText);
+        }
         
         // Remove ground
         this.scene.remove(this.ground);
