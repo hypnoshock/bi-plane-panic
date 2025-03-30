@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GameStateManager } from './game-states/GameStateManager';
 import { MenuState } from './game-states/MenuState';
 import { PlayState } from './game-states/PlayState';
+import { PortalState } from './game-states/PortalState';
 // Create scene, camera, and renderer
 const scene: THREE.Scene = new THREE.Scene();
 
@@ -83,14 +84,14 @@ let frameTimes: number[] = [];
 const frameTimeHistorySize = 60; // Keep track of last 60 frames
 
 // Create game state manager
-const gameStateManager = new GameStateManager(scene, camera, renderer);
+const gameStateManager = new GameStateManager();
 
 // Check for query string 'portal'
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('portal') === 'true') {
-    const playState = new PlayState(scene, camera, renderer); // Assuming PlayState is imported
-    playState.setGameStateManager(gameStateManager);
-    gameStateManager.setState(playState);
+    const portalState = new PortalState(scene, camera, renderer);
+    portalState.setGameStateManager(gameStateManager);
+    gameStateManager.setState(portalState);
 } else {
     // Create and set initial state
     const menuState = new MenuState(scene, camera, renderer);

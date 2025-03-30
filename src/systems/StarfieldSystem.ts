@@ -9,10 +9,13 @@ export class StarfieldSystem {
     private minSpeed: number = 2;
     private maxSpeed: number = 4;
     private scene: THREE.Scene;
+    private center: THREE.Vector3;
 
-    constructor(scene: THREE.Scene, boundaryRadius: number) {
+    constructor(scene: THREE.Scene, boundaryRadius: number, center: THREE.Vector3 = new THREE.Vector3(0, 0, 0)) {
         this.boundaryRadius = boundaryRadius;
         this.scene = scene;
+        this.center = center;
+        
         // Create particle geometry
         const geometry = new THREE.BufferGeometry();
         this.particlePositions = new Float32Array(this.particleCount * 3);
@@ -25,9 +28,9 @@ export class StarfieldSystem {
             // Random position outside the boundary sphere
             const angle = Math.random() * Math.PI * 2;
             const distance = this.boundaryRadius + Math.random() * 10; // 10 units beyond boundary
-            this.particlePositions[i3] = Math.cos(angle) * distance;
-            this.particlePositions[i3 + 1] = Math.sin(angle) * distance;
-            this.particlePositions[i3 + 2] = 0;
+            this.particlePositions[i3] = this.center.x + Math.cos(angle) * distance;
+            this.particlePositions[i3 + 1] = this.center.y + Math.sin(angle) * distance;
+            this.particlePositions[i3 + 2] = this.center.z;
             
             // Random velocity
             const speed = this.minSpeed + Math.random() * (this.maxSpeed - this.minSpeed);
@@ -63,16 +66,16 @@ export class StarfieldSystem {
             
             // Check if particle needs to be reset
             const distance = Math.sqrt(
-                positions[i3] * positions[i3] + 
-                positions[i3 + 1] * positions[i3 + 1]
+                Math.pow(positions[i3] - this.center.x, 2) + 
+                Math.pow(positions[i3 + 1] - this.center.y, 2)
             );
             
             if (distance < this.boundaryRadius) {
                 // Reset particle to outside boundary
                 const angle = Math.random() * Math.PI * 2;
                 const newDistance = this.boundaryRadius + Math.random() * 10;
-                positions[i3] = Math.cos(angle) * newDistance;
-                positions[i3 + 1] = Math.sin(angle) * newDistance;
+                positions[i3] = this.center.x + Math.cos(angle) * newDistance;
+                positions[i3 + 1] = this.center.y + Math.sin(angle) * newDistance;
                 
                 // Update velocity
                 const speed = this.minSpeed + Math.random() * (this.maxSpeed - this.minSpeed);
