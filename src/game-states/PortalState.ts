@@ -566,16 +566,12 @@ export class PortalState implements GameState {
     }
 
     private updateBuildingHeights(deltaTime: number): void {
-        const time = Date.now() * 0.001; // Convert to seconds
-        const baseFrequency = 1; // One beat per second
+        const currentBeat = this.musicSystem.getCurrentBeat();
         
         this.buildings.forEach((building, index) => {
             if (index % 2 === 0) {
                 return;
             }
-
-            // Calculate current beat
-            const currentBeat = Math.floor(time * baseFrequency * building.animationSpeed);
             
             // Only generate new random scale when beat changes
             if (currentBeat !== building.lastBeat) {
