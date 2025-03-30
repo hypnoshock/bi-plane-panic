@@ -670,6 +670,10 @@ export class PortalState implements GameState {
     }
 
     public update(deltaTime: number): void {
+        if (this.musicSystem) {
+            this.musicSystem.update();
+        }
+
         // Update flying planes
         this.flyingPlanes.forEach(plane => {
             const group = plane.getGroup();

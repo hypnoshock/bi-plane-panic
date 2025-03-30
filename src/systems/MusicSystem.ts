@@ -27,12 +27,16 @@ export class MusicSystem {
     private currentTrack: MusicTrack | null = null;
     private isPlaying: boolean = false;
     private startTime: number = 0;
+    private currentBeat: number = 0;
+    private lastUpdateTime: number = 0;
     private musicOscillator: OscillatorNode | null = null;
     private musicGain: GainNode | null = null;
     private musicFilter: BiquadFilterNode | null = null;
     private bassOscillator: OscillatorNode | null = null;
     private bassGain: GainNode | null = null;
     private bassFilter: BiquadFilterNode | null = null;
+    private activeNotes: Set<number> = new Set();
+    private activeBassNotes: Set<number> = new Set();
 
     constructor(audioSystem: AudioSystem) {
         this.audioSystem = audioSystem;
@@ -158,6 +162,7 @@ export class MusicSystem {
         const { kick, hihat, clap } = this.currentTrack.tracks.drums;
         if (kick.includes(beat)) {
             this.audioSystem.playKick(time);
+            console.log('play kick');
         }
         if (hihat.includes(beat)) {
             this.audioSystem.playHiHat(time);
@@ -170,16 +175,12 @@ export class MusicSystem {
     public play(): void {
         if (!this.currentTrack || this.isPlaying) return;
 
-        if (!this.audioSystem.isReady) {
-            this.audioSystem.setReadyCallback(() => {
-                this.play();
-            });
-            return;
-        }
-
         this.isPlaying = true;
         this.startTime = this.audioSystem.getAudioContext().currentTime;
-        this.lastBeat = 0;
+        this.lastUpdateTime = this.startTime;
+        this.currentBeat = 0;
+        this.activeNotes.clear();
+        this.activeBassNotes.clear();
 
         this.setupAudioNodes();
 
@@ -190,9 +191,25 @@ export class MusicSystem {
         if (this.bassOscillator) {
             this.bassOscillator.start(this.startTime);
         }
+    }
 
-        // Schedule all notes
-        const beatDuration = 60 / this.currentTrack.bpm;
+    public update(): void {
+        if (!this.isPlaying || !this.currentTrack) return;
+
+        const currentTime = this.audioSystem.getAudioContext().currentTime;
+        const deltaTime = currentTime - this.lastUpdateTime;
+        this.lastUpdateTime = currentTime;
+
+        // Calculate current beat based on elapsed time
+        const beatsPerSecond = this.currentTrack.bpm / 60;
+        const newBeat = Math.floor((currentTime - this.startTime) * beatsPerSecond);
+        
+        // We've already processed this beat, so we can return
+        if (newBeat <= this.currentBeat) {
+            return;
+        }
+
+        // Handle loop
         const totalBeats = Math.max(
             Math.max(...this.currentTrack.tracks.melody.map(n => n.beat)),
             this.currentTrack.tracks.bass ? Math.max(...this.currentTrack.tracks.bass.map(n => n.beat)) : 0,
@@ -200,56 +217,64 @@ export class MusicSystem {
             Math.max(...this.currentTrack.tracks.drums.hihat)
         ) + 1;
 
-        for (let beat = 0; beat < totalBeats; beat++) {
-            const time = this.startTime + beat * beatDuration;
-
-            // Play melody notes
-            const melodyNote = this.currentTrack.tracks.melody.find(n => n.beat === beat);
-            if (melodyNote) {
-                this.playNote(melodyNote, time);
-            }
-
-            // Play bass notes
-            if (this.currentTrack.tracks.bass) {
-                const bassNote = this.currentTrack.tracks.bass.find(n => n.beat === beat);
-                if (bassNote) {
-                    this.playBassNote(bassNote, time);
-                }
-            }
-
-            // Play drums
-            this.playDrums(beat, time);
+        if (newBeat >= totalBeats) {
+            this.currentBeat = 0;
+            this.startTime = currentTime;
+        } else {
+            this.currentBeat = newBeat;
         }
 
-        // Schedule loop
-        const loopDuration = totalBeats * beatDuration;
-        setTimeout(() => {
-            if (this.isPlaying) {
-                console.log('looping');
-                this.stop();
-                this.play();
+        // Play notes that should start on this beat
+        const melodyNote = this.currentTrack.tracks.melody.find(n => n.beat === this.currentBeat);
+        if (melodyNote && !this.activeNotes.has(this.currentBeat)) {
+            this.playNote(melodyNote, currentTime);
+            this.activeNotes.add(this.currentBeat);
+        }
+
+        if (this.currentTrack.tracks.bass) {
+            const bassNote = this.currentTrack.tracks.bass.find(n => n.beat === this.currentBeat);
+            if (bassNote && !this.activeBassNotes.has(this.currentBeat)) {
+                this.playBassNote(bassNote, currentTime);
+                this.activeBassNotes.add(this.currentBeat);
             }
-        }, loopDuration * 1000);
+        }
+
+        // Play drums
+        this.playDrums(this.currentBeat, currentTime);
+
+        // Clean up old notes from active sets
+        const beatDuration = 60 / this.currentTrack.bpm;
+        const maxNoteDuration = Math.max(
+            ...this.currentTrack.tracks.melody.map(n => n.duration),
+            this.currentTrack.tracks.bass ? Math.max(...this.currentTrack.tracks.bass.map(n => n.duration)) : 0
+        );
+        const cleanupThreshold = this.currentBeat - Math.ceil(maxNoteDuration);
+
+        for (const beat of this.activeNotes) {
+            if (beat < cleanupThreshold) {
+                this.activeNotes.delete(beat);
+            }
+        }
+
+        for (const beat of this.activeBassNotes) {
+            if (beat < cleanupThreshold) {
+                this.activeBassNotes.delete(beat);
+            }
+        }
     }
 
     public stop(): void {
         this.isPlaying = false;
         this.cleanupAudioNodes();
+        this.activeNotes.clear();
+        this.activeBassNotes.clear();
     }
 
     public cleanup(): void {
         this.stop();
-        if (!this.audioSystem.isReady) {
-            this.audioSystem.clearReadyCallback();
-        }
     }
 
     public getCurrentBeat(): number {
-        if (!this.isPlaying || !this.currentTrack) return 0;
-        
-        const currentTime = this.audioSystem.getAudioContext().currentTime;
-        const elapsedTime = currentTime - this.startTime;
-        const beatsPerSecond = this.currentTrack.bpm / 60;
-        return Math.floor(elapsedTime * beatsPerSecond);
+        return this.currentBeat;
     }
 } 
