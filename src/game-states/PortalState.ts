@@ -30,6 +30,11 @@ export class PortalState implements GameState {
     private flyingPlanes: THREE.Mesh[] = [];
     private audioSystem: AudioSystem;
     private musicSystem: MusicSystem;
+    private titleContainer: HTMLDivElement;
+    private playerInputFlags: { [key: number]: {
+        left: boolean;
+        right: boolean; 
+    }} = [{left: false, right: false}];
 
     constructor(
         private scene: THREE.Scene,
@@ -38,6 +43,21 @@ export class PortalState implements GameState {
     ) {
         this.audioSystem = new AudioSystem();
         this.musicSystem = new MusicSystem(this.audioSystem);
+        
+        // Create title container
+        this.titleContainer = document.createElement('div');
+        this.titleContainer.style.cssText = `
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            font-family: Arial, sans-serif;
+            z-index: 1000;
+            pointer-events: none;
+        `;
+        document.body.appendChild(this.titleContainer);
         
         // Create player
         const planeModel = new GLBModel('assets/bi-plane2.glb');
@@ -284,10 +304,12 @@ export class PortalState implements GameState {
             const action = event.replace('player1_', '');
             switch (action) {
                 case 'left':
-                    this.player.getGroup().position.x -= this.moveSpeed;
+                    this.playerInputFlags[0].left = isPress;
+                    this.playerInputFlags[0].right = false;
                     break;
                 case 'right':
-                    this.player.getGroup().position.x += this.moveSpeed;
+                    this.playerInputFlags[0].left = false;
+                    this.playerInputFlags[0].right = isPress;
                     break;
             }
         }
@@ -307,6 +329,32 @@ export class PortalState implements GameState {
         }
         await this.musicSystem.loadTrack('menu-music.json');
         this.musicSystem.play();
+
+        // Update title display
+        this.titleContainer.innerHTML = `
+            <style>
+                @keyframes gentleRotate {
+                    0% { transform: rotate(-2deg); }
+                    50% { transform: rotate(2deg); }
+                    100% { transform: rotate(-2deg); }
+                }
+                .title {
+                    font-size: 12vh;
+                    font-weight: bold;
+                    margin-bottom: 2vh;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                    animation: gentleRotate 3s ease-in-out infinite;
+                    display: inline-block;
+                }
+                .instructions {
+                    font-size: 2vh;
+                    color: #ffffff;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                }
+            </style>
+            <div class="title">Bi-Plane Panic</div>
+            <div class="instructions">WASD to move. Space = Button A Enter = Button B</div>
+        `;
     }
 
     private isMobileDevice(): boolean {
@@ -335,6 +383,9 @@ export class PortalState implements GameState {
         this.portalLabels.left.remove();
         this.portalLabels.right.remove();
 
+        // Remove title container
+        this.titleContainer.remove();
+
         // Clean up portal starfields
         this.portalStarfields.left.cleanup();
         this.portalStarfields.right.cleanup();
@@ -360,6 +411,13 @@ export class PortalState implements GameState {
                 plane.position.x = -50;
             }
         });
+
+        // Player movement
+        if (this.playerInputFlags[0].left) {
+            this.player.getGroup().position.x -= this.moveSpeed * deltaTime;
+        } else if (this.playerInputFlags[0].right) {
+            this.player.getGroup().position.x += this.moveSpeed * deltaTime;
+        }
 
         // Check for portal collisions
         const playerPosition = this.player.getPosition();
