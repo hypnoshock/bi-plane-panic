@@ -24,6 +24,8 @@ export class PortalState implements GameState {
     private ground: THREE.Mesh;
     private portalStarfields: { left: StarfieldSystem; right: StarfieldSystem };
     private portalLabels: { left: HTMLElement; right: HTMLElement };
+    private cityscape: THREE.Group;
+    private flyingPlanes: THREE.Mesh[] = [];
 
     constructor(
         private scene: THREE.Scene,
@@ -39,8 +41,8 @@ export class PortalState implements GameState {
         this.player.getGroup().rotation.z = 0; // Face upward
         this.scene.add(this.player.getGroup());
 
-        // Create ground
-        const groundGeometry = new THREE.PlaneGeometry(50, 50);
+        // Create wider ground
+        const groundGeometry = new THREE.PlaneGeometry(200, 200);
         const groundMaterial = new THREE.MeshPhongMaterial({
             color: 0x808080, // Grey color
             side: THREE.DoubleSide
@@ -49,6 +51,14 @@ export class PortalState implements GameState {
         this.ground.rotation.x = -Math.PI / 2; // Lay flat
         this.ground.position.y = -8; // Position at player's level
         this.scene.add(this.ground);
+
+        // Create cityscape
+        this.cityscape = new THREE.Group();
+        this.createCityscape();
+        this.scene.add(this.cityscape);
+
+        // Create flying planes
+        this.createFlyingPlanes();
 
         // Create portals with more visible materials
         const portalGeometry = new THREE.CircleGeometry(this.portalRadius, 32);
@@ -99,12 +109,67 @@ export class PortalState implements GameState {
 
         // Initialize localized starfield systems for each portal
         this.portalStarfields = {
-            left: new StarfieldSystem(this.scene, 4, this.leftPortal.position),
-            right: new StarfieldSystem(this.scene, 4, this.rightPortal.position)
+            left: new StarfieldSystem(this.scene, 2, this.leftPortal.position),
+            right: new StarfieldSystem(this.scene, 2, this.rightPortal.position)
         };
 
         // Position camera
         this.camera.position.z = 15;
+    }
+
+    private createCityscape(): void {
+        const buildingCount = 20;
+        const buildingSpacing = 10;
+        const buildingWidth = 8;
+        const buildingHeight = 15;
+        const buildingDepth = 8;
+
+        for (let i = 0; i < buildingCount; i++) {
+            const building = new THREE.Mesh(
+                new THREE.BoxGeometry(buildingWidth, buildingHeight, buildingDepth),
+                new THREE.MeshPhongMaterial({
+                    color: 0x2c3e50,
+                    emissive: 0x1a252f,
+                    shininess: 30
+                })
+            );
+
+            // Randomize building height and position
+            const height = buildingHeight * (0.5 + Math.random() * 0.5);
+            building.scale.y = height / buildingHeight;
+            building.position.set(
+                (i - buildingCount / 2) * buildingSpacing,
+                height / 2 - 8,
+                -20
+            );
+
+            this.cityscape.add(building);
+        }
+    }
+
+    private createFlyingPlanes(): void {
+        const planeCount = 5;
+        const planeGeometry = new THREE.BoxGeometry(2, 0.5, 1);
+        const planeMaterial = new THREE.MeshPhongMaterial({
+            color: 0x000000,
+            emissive: 0x000000,
+            shininess: 100
+        });
+
+        for (let i = 0; i < planeCount; i++) {
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            
+            // Randomize position and rotation
+            plane.position.set(
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 20,
+                (Math.random() - 0.5) * 50
+            );
+            plane.rotation.x = Math.PI / 4;
+            
+            this.flyingPlanes.push(plane);
+            this.scene.add(plane);
+        }
     }
 
     private createPortalLabel(text: string, xPosition: number): HTMLElement {
@@ -226,6 +291,13 @@ export class PortalState implements GameState {
         // Remove ground
         this.scene.remove(this.ground);
 
+        // Remove cityscape
+        this.scene.remove(this.cityscape);
+
+        // Remove flying planes
+        this.flyingPlanes.forEach(plane => this.scene.remove(plane));
+        this.flyingPlanes = [];
+
         // Remove portal labels
         this.portalLabels.left.remove();
         this.portalLabels.right.remove();
@@ -243,6 +315,14 @@ export class PortalState implements GameState {
     }
 
     public update(deltaTime: number): void {
+        // Update flying planes
+        this.flyingPlanes.forEach(plane => {
+            plane.position.x += deltaTime * 2;
+            if (plane.position.x > 50) {
+                plane.position.x = -50;
+            }
+        });
+
         // Check for portal collisions
         const playerPosition = this.player.getPosition();
         const leftPortalDistance = playerPosition.distanceTo(this.leftPortal.position);
@@ -250,7 +330,7 @@ export class PortalState implements GameState {
 
         if (leftPortalDistance < this.portalRadius) {
             // Redirect to Google
-            window.location.href = 'https://www.google.com';
+            window.location.href = 'http://portal.pieter.com';
         } else if (rightPortalDistance < this.portalRadius) {
             // Transition to PlayState
             const playState = new PlayState(this.scene, this.camera, this.renderer);
