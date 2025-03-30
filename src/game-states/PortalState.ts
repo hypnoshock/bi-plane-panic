@@ -35,6 +35,15 @@ export class PortalState implements GameState {
         left: boolean;
         right: boolean; 
     }} = [{left: false, right: false}];
+    private buildings: Array<{
+        group: THREE.Group;
+        baseHeight: number;
+        targetHeight: number;
+        animationSpeed: number;
+        phase: number;
+        currentTargetScale: number;
+        lastBeat: number;
+    }> = [];
 
     constructor(
         private scene: THREE.Scene,
@@ -212,6 +221,17 @@ export class PortalState implements GameState {
             );
 
             this.cityscape.add(building);
+            
+            // Add building to animation array with beat-based timing
+            this.buildings.push({
+                group: building,
+                baseHeight: height,
+                targetHeight: height,
+                animationSpeed: 1 + (i % 2), // Alternate between 1x and 2x speed for front buildings
+                phase: 0,
+                currentTargetScale: 1.0, // Initial scale
+                lastBeat: -1 // Initialize to -1 to ensure first beat generates a new scale
+            });
         }
 
         // Create back row of buildings (further away and slightly smaller)
@@ -275,6 +295,17 @@ export class PortalState implements GameState {
             );
 
             this.cityscape.add(building);
+            
+            // Add building to animation array with beat-based timing
+            this.buildings.push({
+                group: building,
+                baseHeight: height,
+                targetHeight: height,
+                animationSpeed: 0.5 + (i % 2), // Alternate between 0.5x and 1x speed for back buildings
+                phase: 0,
+                currentTargetScale: 1.0, // Initial scale
+                lastBeat: -1 // Initialize to -1 to ensure first beat generates a new scale
+            });
         }
     }
 
@@ -494,6 +525,9 @@ export class PortalState implements GameState {
             }
         });
 
+        // Update building heights
+        this.updateBuildingHeights(deltaTime);
+
         // Player movement
         if (this.playerInputFlags[0].left) {
             this.player.getGroup().position.x -= this.moveSpeed * deltaTime;
@@ -529,6 +563,33 @@ export class PortalState implements GameState {
         this.joypadHandler.update();
         this.keyboardHandler.update();
         this.screenControlHandler.update();
+    }
+
+    private updateBuildingHeights(deltaTime: number): void {
+        const time = Date.now() * 0.001; // Convert to seconds
+        const baseFrequency = 1; // One beat per second
+        
+        this.buildings.forEach((building, index) => {
+            if (index % 2 === 0) {
+                return;
+            }
+
+            // Calculate current beat
+            const currentBeat = Math.floor(time * baseFrequency * building.animationSpeed);
+            
+            // Only generate new random scale when beat changes
+            if (currentBeat !== building.lastBeat) {
+                building.currentTargetScale = 1.2 + (Math.random() * 0.6); // Random scale between 1.2 and 1.8
+                building.lastBeat = currentBeat;
+            }
+            
+            // Apply scale from the base
+            building.group.scale.y = building.currentTargetScale;
+            
+            // Update position to maintain base alignment
+            const heightDiff = (building.baseHeight * building.currentTargetScale - building.baseHeight) / 2;
+            building.group.position.y = (building.baseHeight / 2 - 8) + heightDiff;
+        });
     }
 
     public render(): void {
