@@ -79,6 +79,7 @@ export class PortalState implements GameState {
         // Position player at bottom middle of screen
         this.player.getGroup().position.set(0, -8, 0);
         this.player.getGroup().rotation.z = 0; // Face upward
+        this.player.getGroup().scale.set(2, 2, 2);
         this.scene.add(this.player.getGroup());
 
         // Create wider ground
@@ -121,7 +122,7 @@ export class PortalState implements GameState {
         this.runwayMarking = new THREE.Group();
         
         // Main centerline
-        const centerlineGeometry = new THREE.PlaneGeometry(0.5, 4);
+        const centerlineGeometry = new THREE.PlaneGeometry(0.5, 10);
         const centerlineMaterial = new THREE.MeshPhongMaterial({
             color: 0xffffff,
             emissive: 0xffffff,
@@ -131,6 +132,7 @@ export class PortalState implements GameState {
         const centerline = new THREE.Mesh(centerlineGeometry, centerlineMaterial);
         centerline.rotation.x = -Math.PI / 2;
         centerline.position.y = -7.9;
+        centerline.position.z = -1;
         this.runwayMarking.add(centerline);
 
         // Dashed lines
@@ -148,6 +150,35 @@ export class PortalState implements GameState {
             dash.position.y = -7.9;
             dash.position.z = (i - 1) * 1.5;
             this.runwayMarking.add(dash);
+        }
+
+        // Add horizontal lines to the right
+        const horizontalLineGeometry = new THREE.PlaneGeometry(4, 0.3); // Wide but thin rectangle
+        const horizontalLineMaterial = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            emissive: 0xffffff,
+            emissiveIntensity: 0.5,
+            shininess: 100,
+        });
+
+        // First group of 6 lines
+        for (let i = 0; i < 6; i++) {
+            const line = new THREE.Mesh(horizontalLineGeometry, horizontalLineMaterial);
+            line.rotation.x = -Math.PI / 2;
+            line.position.y = -7.9;
+            line.position.x = 3; // Start just after the runway marking
+            line.position.z = (i - 2.5) * 0.8 - 4; // Space lines evenly
+            this.runwayMarking.add(line);
+        }
+
+        // Second group of 6 lines (with gap)
+        for (let i = 0; i < 6; i++) {
+            const line = new THREE.Mesh(horizontalLineGeometry, horizontalLineMaterial);
+            line.rotation.x = -Math.PI / 2;
+            line.position.y = -7.9;
+            line.position.x = 3;
+            line.position.z = (i - 2.5) * 0.8 + 1.5; // Space lines evenly with gap
+            this.runwayMarking.add(line);
         }
 
         this.runwayMarking.position.set(10, 0, 0);
@@ -564,10 +595,15 @@ export class PortalState implements GameState {
                     color: #ffffff;
                     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
                 }
+                .call-to-action {
+                    font-size: 4vh;
+                    color: #ff0000;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                }
             </style>
             <div class="title">Bi-Plane Panic</div>
             <div class="instructions">WASD to move.</br>Space = Button A</br>Enter = Button B</div>
-            <div class="instructions" style="color: #ff0000">Move your plane left or right to choose your portal.</div>
+            <div class="call-to-action">Move your red plane to right to start.</div>
         `;
     }
 
