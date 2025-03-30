@@ -4,10 +4,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 export class GLBModel {
     private group: THREE.Group;
     private materials: THREE.Material[] = [];
+    public modelLoader: Promise<void>;
 
     constructor(url: string) {
         this.group = new THREE.Group();
-        this.loadModel(url);
+        this.modelLoader = this.loadModel(url);
     }
 
     private async loadModel(url: string): Promise<void> {
@@ -62,7 +63,10 @@ export class GLBModel {
         return this.group;
     }
 
-    public setColor(color: THREE.ColorRepresentation): void {
+    public async setColor(color: THREE.ColorRepresentation): Promise<void> {
+        if (this.modelLoader) {
+            await this.modelLoader;
+        }
         this.materials.forEach(material => {
             if ('color' in material && material.color instanceof THREE.Color) {
                 material.color.set(color);

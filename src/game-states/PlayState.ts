@@ -164,7 +164,7 @@ export class PlayState implements GameState {
         ];
 
         // Create and position all players
-        playerConfigs.forEach((config, index) => {
+        playerConfigs.forEach(async (config, index) => {
             const planeModel = new GLBModel('assets/bi-plane2.glb');
             const player = new Player(planeModel, index, config);
             

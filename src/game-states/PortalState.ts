@@ -27,7 +27,7 @@ export class PortalState implements GameState {
     private portalStarfields: { left: StarfieldSystem; right: StarfieldSystem };
     private portalLabels: { left: HTMLElement; right: HTMLElement };
     private cityscape: THREE.Group;
-    private flyingPlanes: THREE.Mesh[] = [];
+    private flyingPlanes: GLBModel[] = [];
     private audioSystem: AudioSystem;
     private musicSystem: MusicSystem;
     private titleContainer: HTMLDivElement;
@@ -309,28 +309,26 @@ export class PortalState implements GameState {
         }
     }
 
-    private createFlyingPlanes(): void {
+    private async createFlyingPlanes(): Promise<void> {
         const planeCount = 5;
-        const planeGeometry = new THREE.BoxGeometry(2, 0.5, 1);
-        const planeMaterial = new THREE.MeshPhongMaterial({
-            color: 0x000000,
-            emissive: 0x000000,
-            shininess: 100
-        });
+        const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff]; // Different colors for each plane
 
         for (let i = 0; i < planeCount; i++) {
-            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            const planeModel = new GLBModel('assets/bi-plane2.glb');
+            await planeModel.modelLoader;
+            planeModel.setColor(colors[i]);
+            const group = planeModel.getGroup();
             
             // Randomize position and rotation
-            plane.position.set(
+            group.position.set(
                 (Math.random() - 0.5) * 100,
                 (Math.random() - 0.5) * 20,
                 (Math.random() - 0.5) * 50
             );
-            plane.rotation.x = Math.PI / 4;
+            group.rotation.x = Math.PI / 4;
             
-            this.flyingPlanes.push(plane);
-            this.scene.add(plane);
+            this.flyingPlanes.push(planeModel);
+            this.scene.add(group);
         }
     }
 
@@ -489,7 +487,7 @@ export class PortalState implements GameState {
         this.scene.remove(this.cityscape);
 
         // Remove flying planes
-        this.flyingPlanes.forEach(plane => this.scene.remove(plane));
+        this.flyingPlanes.forEach(plane => this.scene.remove(plane.getGroup()));
         this.flyingPlanes = [];
 
         // Remove portal labels
@@ -519,9 +517,10 @@ export class PortalState implements GameState {
     public update(deltaTime: number): void {
         // Update flying planes
         this.flyingPlanes.forEach(plane => {
-            plane.position.x += deltaTime * 2;
-            if (plane.position.x > 50) {
-                plane.position.x = -50;
+            const group = plane.getGroup();
+            group.position.x += deltaTime * 2;
+            if (group.position.x > 50) {
+                group.position.x = -50;
             }
         });
 
