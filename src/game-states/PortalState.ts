@@ -17,8 +17,8 @@ export class PortalState implements GameState {
     private joypadHandler!: JoypadInputHandler;
     private gameStateManager!: GameStateManager;
     private player: Player;
-    private leftPortal: THREE.Mesh;
-    private rightPortal: THREE.Mesh;
+    private leftPortal: THREE.Group;
+    private rightPortal: THREE.Group;
     private moveSpeed: number = 5; // Units per second
     private portalRadius: number = 2;
     private portalColor: number = 0x00ff00; // Bright green
@@ -106,13 +106,17 @@ export class PortalState implements GameState {
         });
 
         // Left portal
-        this.leftPortal = new THREE.Mesh(portalGeometry, portalMaterial);
+        this.leftPortal = new THREE.Group();
+        const leftPortalMesh = new THREE.Mesh(portalGeometry, portalMaterial);
+        this.leftPortal.add(leftPortalMesh);
         this.leftPortal.position.set(-10, -7.9, 0); // Slightly above ground
         this.leftPortal.rotation.x = -Math.PI / 2; // Face upward
         this.scene.add(this.leftPortal);
 
         // Right portal
-        this.rightPortal = new THREE.Mesh(portalGeometry, portalMaterial);
+        this.rightPortal = new THREE.Group();
+        const rightPortalMesh = new THREE.Mesh(portalGeometry, portalMaterial);
+        this.rightPortal.add(rightPortalMesh);
         this.rightPortal.position.set(10, -7.9, 0); // Slightly above ground
         this.rightPortal.rotation.x = -Math.PI / 2; // Face upward
         this.scene.add(this.rightPortal);
@@ -129,13 +133,11 @@ export class PortalState implements GameState {
 
         // Left portal glow
         const leftGlow = new THREE.Mesh(glowGeometry, glowMaterial);
-        leftGlow.position.copy(this.leftPortal.position);
-        this.scene.add(leftGlow);
+        this.leftPortal.add(leftGlow);
 
         // Right portal glow
         const rightGlow = new THREE.Mesh(glowGeometry, glowMaterial);
-        rightGlow.position.copy(this.rightPortal.position);
-        this.scene.add(rightGlow);
+        this.rightPortal.add(rightGlow);
 
         // Create portal labels
         this.portalLabels = {
