@@ -21,6 +21,8 @@ export class GLBModel {
                 if (child instanceof THREE.Mesh) {
                     const material = child.material as THREE.MeshPhongMaterial;
                     if (material) {
+                        material.shininess = 100;
+                        material.specular = new THREE.Color(0xffffff);
                         this.materials.push(material);
                     }
                 }
