@@ -77,7 +77,7 @@ export class PortalState implements GameState {
         this.player = new Player(planeModel, 0, { color: 0xff0000, isCPU: false });
         
         // Position player at bottom middle of screen
-        this.player.getGroup().position.set(0, -8, 0);
+        this.player.getGroup().position.set(0, -7, 0);
         this.player.getGroup().rotation.z = 0; // Face upward
         this.player.getGroup().scale.set(2, 2, 2);
         this.scene.add(this.player.getGroup());
@@ -610,7 +610,7 @@ export class PortalState implements GameState {
             </style>
             <div class="title">Bi-Plane Panic</div>
             <div class="instructions">WASD to move.</br>Space = Button A</br>Enter = Button B</div>
-            <div class="call-to-action">Move your red plane to right to start.</div>
+            <div class="call-to-action">Move your red plane to right to play again.</div>
         `;
     }
 
