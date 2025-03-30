@@ -592,7 +592,7 @@ export class PortalState implements GameState {
                 }
                 .instructions {
                     font-size: 2vh;
-                    color: #ffffff;
+                    color: #000000;
                     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
                 }
                 .call-to-action {
