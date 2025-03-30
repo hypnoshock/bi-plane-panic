@@ -19,12 +19,18 @@ export class GLBModel {
             // Apply color to all materials
             model.traverse((child: THREE.Object3D) => {
                 if (child instanceof THREE.Mesh) {
-                    const material = child.material as THREE.MeshPhongMaterial;
-                    if (material) {
-                        material.shininess = 100;
-                        material.specular = new THREE.Color(0xffffff);
-                        this.materials.push(material);
-                    }
+                    // Create a new shinier material
+                    const newMaterial = new THREE.MeshPhongMaterial({
+                        color: child.material instanceof THREE.MeshPhongMaterial ? child.material.color : 0xffffff,
+                        shininess: 200,
+                        specular: new THREE.Color(0xffffff),
+                        emissive: new THREE.Color(0x000000),
+                        emissiveIntensity: 0
+                    });
+                    
+                    // Replace the old material with our new one
+                    child.material = newMaterial;
+                    this.materials.push(newMaterial);
                 }
             });
 
