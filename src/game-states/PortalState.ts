@@ -70,7 +70,7 @@ export class PortalState implements GameState {
         
         // Create player
         const planeModel = new GLBModel('assets/bi-plane2.glb');
-        this.player = new Player(planeModel, 0, { color: 0x4169e1, isCPU: false });
+        this.player = new Player(planeModel, 0, { color: 0xff0000, isCPU: false });
         
         // Position player at bottom middle of screen
         this.player.getGroup().position.set(0, -8, 0);
@@ -312,18 +312,36 @@ export class PortalState implements GameState {
     }
 
     private async createFlyingPlanes(): Promise<void> {
-        const planeCount = 5;
-        const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff]; // Different colors for each plane
+        const planeCount = 30;
+
+        // Different colors for each plane
+        const colors = [
+            0xff0000, // Bright Red
+            0x00ff00, // Lime Green
+            0x0000ff, // Blue
+            0xff00ff, // Magenta
+            0x00ffff, // Cyan
+            0xff8800, // Orange
+            0xff0088, // Hot Pink
+            0x88ff00, // Chartreuse
+            0x0088ff, // Sky Blue
+            0x8800ff, // Purple
+            0xffff00, // Yellow
+            0x00ff88, // Spring Green
+            0xff0044, // Coral Red
+            0x44ff00, // Neon Green
+            0x0044ff  // Royal Blue
+        ];
 
         for (let i = 0; i < planeCount; i++) {
             const planeModel = new GLBModel('assets/bi-plane2.glb');
-            planeModel.setColor(colors[i]);
+            planeModel.setColor(colors[i % colors.length]);
             const group = planeModel.getGroup();
             
             // Randomize position and rotation
             group.position.set(
                 (Math.random() - 0.5) * 100,
-                (Math.random() - 0.5) * 20,
+                Math.random() * 15,
                 (Math.random() - 0.5) * 50
             );
             group.rotation.x = Math.PI / 4;
@@ -526,9 +544,9 @@ export class PortalState implements GameState {
                 // Randomize position and rotation
                 group.position.set(
                     -50,
-                    (Math.random() - 0.5) * 20,
+                    Math.random() * 15,
                     (Math.random() - 0.5) * 50
-                );
+                );                
             }
         });
 

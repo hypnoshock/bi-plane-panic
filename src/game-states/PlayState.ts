@@ -157,8 +157,8 @@ export class PlayState implements GameState {
 
         // Define player configurations
         const playerConfigs = [
-            { color: 0x4169e1, isCPU: false }, // Blue player 1 (human)
-            { color: 0xff0000, isCPU: true },  // Red player 2 (CPU)
+            { color: 0xff0000, isCPU: false }, // Blue player 1 (human)
+            { color: 0x4169e1, isCPU: true },  // Red player 2 (CPU)
             { color: 0x800080, isCPU: true },   // Purple player 3 (CPU)
             // { color: 0x008000, isCPU: true },   // Green player 4 (CPU)
             // { color: 0xffff00, isCPU: true }   // Yellow player 5 (CPU)
