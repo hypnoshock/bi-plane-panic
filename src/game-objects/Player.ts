@@ -19,7 +19,6 @@ export class Player {
     private isFlashing: boolean = false;
     private flashStartTime: number = 0;
     private flashDuration: number = 200; // Duration in milliseconds
-    private originalColor: number = 0x4169e1;
     private flashColor: number = 0xffffff;
     private playerNum: number;
     private smokeTimer: number = 0;
@@ -29,15 +28,17 @@ export class Player {
     private boundaryFlashInterval: number = 50; // Flash every 25ms for rapid pulsing
     private explosionSystem: ExplosionSystem | null = null;
     private onDeathCallback: (() => void) | null = null;
+    private config: { color: THREE.ColorRepresentation, isCPU: boolean };
 
-    constructor(model: GLBModel, playerNum: number) {
+    constructor(model: GLBModel, playerNum: number, config: { color: THREE.ColorRepresentation, isCPU: boolean }) {
+        this.config = config;
         this.model = model;
-        this.model.getGroup().rotation.y = Math.PI / 2;
-        this.model.getGroup().scale.set(2, 2, 2);
+        this.model.getGroup().rotation.y = -Math.PI / 2;
+        this.model.getGroup().scale.set(1, 1, 1);
+        this.model.setColor(config.color);
         this.group = new THREE.Group();
         this.group.add(this.model.getGroup());
         this.initialPosition = new THREE.Vector3(0, 0, 0);
-        this.originalColor = this.model.getColor();
         this.playerNum = playerNum;
     }
 
@@ -73,9 +74,7 @@ export class Player {
             const elapsed = currentTime - this.boundaryFlashStartTime;
             const flashState = Math.floor(elapsed / this.boundaryFlashInterval) % 2;
             
-            // Use a bright red color for the flash
-            const flashColor = 0x000000;
-            this.model.setColor(flashState === 0 ? flashColor : this.originalColor);
+            this.model.setColor(flashState === 0 ? this.flashColor : this.config.color);
             
             // Force material update
             this.model.getGroup().traverse((child: THREE.Object3D) => {
@@ -94,15 +93,15 @@ export class Player {
                 
                 if (elapsed >= this.flashDuration) {
                     this.isFlashing = false;
-                    this.model.setColor(this.originalColor);
+                    this.model.setColor(this.config.color);
                 } else {
                     // Alternate between flash color and original color
                     const isWhite = Math.floor(elapsed / 50) % 2 === 0;
-                    this.model.setColor(isWhite ? this.flashColor : this.originalColor);
+                    this.model.setColor(isWhite ? this.flashColor : this.config.color);
                 }
             } else {
                 // Reset color when returning to boundary
-                this.model.setColor(this.originalColor);
+                this.model.setColor(this.config.color);
                 this.boundaryFlashStartTime = 0;
             }
         }
@@ -198,7 +197,7 @@ export class Player {
         this.energy = 3;
         this.isGameOver = false;
         this.isFlashing = false;
-        this.model.setColor(this.originalColor);
+        this.model.setColor(this.config.color);
         this.resetPosition();
     }
 
@@ -218,12 +217,16 @@ export class Player {
     public setOutsideBoundary(outside: boolean): void {
         this.isOutsideBoundary = outside;
         if (!outside) {
-            this.model.setColor(this.originalColor);
+            this.model.setColor(this.config.color);
             this.boundaryFlashStartTime = 0;
         }
     }
 
     public setOnDeathCallback(callback: () => void): void {
         this.onDeathCallback = callback;
+    }
+
+    public getModel(): GLBModel {
+        return this.model;
     }
 } 

@@ -164,8 +164,8 @@ export class PlayState implements GameState {
 
         // Create and position all players
         playerConfigs.forEach((config, index) => {
-            const planeModel = new GLBModel('assets/bi-plane.glb', config.color);
-            const player = new Player(planeModel, index);
+            const planeModel = new GLBModel('assets/bi-plane2.glb');
+            const player = new Player(planeModel, index, config);
             
             // Set up systems
             player.setBulletSystem(this.bulletSystem);
@@ -188,7 +188,9 @@ export class PlayState implements GameState {
             // The plane model is rotated 90 degrees by default, so we need to adjust
             // the rotation to face inward. The angle + Math.PI points outward, so we
             // subtract Math.PI to point inward
-            player.getGroup().rotation.z = angle - Math.PI;
+            const zRotation = angle - Math.PI;
+            player.getGroup().rotation.z = zRotation;
+            player.getModel().getGroup().rotation.x = zRotation;
             
             // Add to scene and track
             this.scene.add(player.getGroup());
@@ -238,7 +240,6 @@ export class PlayState implements GameState {
         this.keyboardHandler = keyboardHandler;
         this.screenControlHandler = screenControlHandler;
         this.joypadHandler = joypadHandler;
-        this.cpuHandler = new CPUInputHandler();
 
         const inputHandler = (event: string, isPress: boolean) => {
             this.handleInput(event, isPress);
@@ -248,9 +249,9 @@ export class PlayState implements GameState {
         this.joypadHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
         this.keyboardHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
         this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
-
         
         // Set up player 2 controls (CPU)
+        this.cpuHandler = new CPUInputHandler();
         this.cpuHandler.setEventHandler((event, isPress) => inputHandler(`player2_${event}`, isPress));
         this.cpuHandler.setControlledPlayer(this.players[1]);
         this.cpuHandler.setOtherPlayers([this.players[0], this.players[2]]);
@@ -642,6 +643,7 @@ export class PlayState implements GameState {
         // Check for winner
         this.checkForWinner();
 
+        this.joypadHandler.update();
         this.keyboardHandler.update();
         this.screenControlHandler.update();
         this.cpuHandler.update(deltaTime);

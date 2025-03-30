@@ -5,12 +5,12 @@ export class GLBModel {
     private group: THREE.Group;
     private materials: THREE.Material[] = [];
 
-    constructor(url: string, color: THREE.ColorRepresentation) {
+    constructor(url: string) {
         this.group = new THREE.Group();
-        this.loadModel(url, color);
+        this.loadModel(url);
     }
 
-    private async loadModel(url: string, color: THREE.ColorRepresentation): Promise<void> {
+    private async loadModel(url: string): Promise<void> {
         const loader = new GLTFLoader();
         try {
             const gltf = await loader.loadAsync(url);
@@ -21,7 +21,6 @@ export class GLBModel {
                 if (child instanceof THREE.Mesh) {
                     const material = child.material as THREE.MeshPhongMaterial;
                     if (material) {
-                        material.color.setHex(color as number);
                         this.materials.push(material);
                     }
                 }
@@ -32,7 +31,7 @@ export class GLBModel {
             console.error('Error loading GLB model:', error);
             // Fallback to a basic plane model if loading fails
             const geometry = new THREE.BoxGeometry(1, 0.1, 0.5);
-            const material = new THREE.MeshPhongMaterial({ color });
+            const material = new THREE.MeshPhongMaterial();
             const mesh = new THREE.Mesh(geometry, material);
             this.group.add(mesh);
             this.materials.push(material);
@@ -55,10 +54,12 @@ export class GLBModel {
         return this.group;
     }
 
-    public setColor(color: number): void {
+    public setColor(color: THREE.ColorRepresentation): void {
         this.materials.forEach(material => {
             if ('color' in material && material.color instanceof THREE.Color) {
-                material.color.setHex(color);
+                material.color.set(color);
+                material.needsUpdate = true;
+
             }
         });
     }

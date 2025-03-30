@@ -2,16 +2,17 @@ import * as THREE from 'three';
 
 export class StarfieldSystem {
     private particles: THREE.Points;
-    private particleCount: number = 1000;
+    private particleCount: number = 2000;
     private boundaryRadius: number;
     private particlePositions: Float32Array;
     private particleVelocities: Float32Array;
     private minSpeed: number = 2;
     private maxSpeed: number = 4;
+    private scene: THREE.Scene;
 
     constructor(scene: THREE.Scene, boundaryRadius: number) {
         this.boundaryRadius = boundaryRadius;
-        
+        this.scene = scene;
         // Create particle geometry
         const geometry = new THREE.BufferGeometry();
         this.particlePositions = new Float32Array(this.particleCount * 3);
@@ -86,7 +87,7 @@ export class StarfieldSystem {
     public cleanup(): void {
         if (this.particles) {
             this.particles.geometry.dispose();
-            this.particles.material.dispose();
+            this.scene.remove(this.particles);
         }
     }
 } 
