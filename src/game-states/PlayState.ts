@@ -92,12 +92,12 @@ export class PlayState implements GameState {
         arrowCanvas.height = 64;
         const arrowCtx = arrowCanvas.getContext('2d');
         if (arrowCtx) {
-            // Draw yellow arrow
+            // Draw yellow arrow pointing downward
             arrowCtx.fillStyle = '#ffd700';
             arrowCtx.beginPath();
-            arrowCtx.moveTo(32, 0);
-            arrowCtx.lineTo(0, 64);
-            arrowCtx.lineTo(64, 64);
+            arrowCtx.moveTo(0, 0);
+            arrowCtx.lineTo(64, 0);
+            arrowCtx.lineTo(32, 64);
             arrowCtx.closePath();
             arrowCtx.fill();
         }
@@ -587,7 +587,6 @@ export class PlayState implements GameState {
                 // Position arrow above player
                 this.playerIndicator.position.copy(playerPosition);
                 this.playerIndicator.position.y += 2; // 2 units above player
-                this.playerIndicator.rotation.z = Math.PI; // Rotate 180 degrees to point down
                 
                 // Position text above arrow
                 this.playerIndicatorText.position.copy(playerPosition);
