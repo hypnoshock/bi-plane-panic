@@ -18,14 +18,14 @@ export class PortalState implements GameState {
     private gameStateManager!: GameStateManager;
     private player: Player;
     private leftPortal: THREE.Group;
-    private rightPortal: THREE.Group;
+    private runwayMarking: THREE.Group;
     private moveSpeed: number = 5; // Units per second
     private portalRadius: number = 2;
     private portalColor: number = 0x00ff00; // Bright green
     private backgroundTexture: THREE.CanvasTexture | null = null;
     private ground: THREE.Mesh;
-    private portalStarfields: { left: StarfieldSystem; right: StarfieldSystem };
-    private portalLabels: { left: HTMLElement; right: HTMLElement };
+    private portalStarfields: { left: StarfieldSystem };
+    private portalLabels: { left: HTMLElement };
     private cityscape: THREE.Group;
     private flyingPlanes: GLBModel[] = [];
     private audioSystem: AudioSystem;
@@ -110,17 +110,44 @@ export class PortalState implements GameState {
         const leftPortalMesh = new THREE.Mesh(portalGeometry, portalMaterial);
         this.leftPortal.add(leftPortalMesh);
         this.leftPortal.position.set(-10, -7.9, 0);
-        // this.leftPortal.rotation.z = -Math.PI / 2;
         this.leftPortal.rotation.set( 0, -Math.PI / 2, 0);
         this.scene.add(this.leftPortal);
 
-        // Right portal
-        this.rightPortal = new THREE.Group();
-        const rightPortalMesh = new THREE.Mesh(portalGeometry, portalMaterial);
-        this.rightPortal.add(rightPortalMesh);
-        this.rightPortal.position.set(10, -7.9, 0);
-        this.rightPortal.rotation.x = -Math.PI / 2;
-        this.scene.add(this.rightPortal);
+        // Create runway centerline marking
+        this.runwayMarking = new THREE.Group();
+        
+        // Main centerline
+        const centerlineGeometry = new THREE.PlaneGeometry(0.5, 4);
+        const centerlineMaterial = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            emissive: 0xffffff,
+            emissiveIntensity: 0.5,
+            shininess: 100,
+        });
+        const centerline = new THREE.Mesh(centerlineGeometry, centerlineMaterial);
+        centerline.rotation.x = -Math.PI / 2;
+        centerline.position.y = -7.9;
+        this.runwayMarking.add(centerline);
+
+        // Dashed lines
+        const dashGeometry = new THREE.PlaneGeometry(0.3, 1);
+        const dashMaterial = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            emissive: 0xffffff,
+            emissiveIntensity: 0.5,
+            shininess: 100,
+        });
+
+        for (let i = 0; i < 3; i++) {
+            const dash = new THREE.Mesh(dashGeometry, dashMaterial);
+            dash.rotation.x = -Math.PI / 2;
+            dash.position.y = -7.9;
+            dash.position.z = (i - 1) * 1.5;
+            this.runwayMarking.add(dash);
+        }
+
+        this.runwayMarking.position.set(10, 0, 0);
+        this.scene.add(this.runwayMarking);
 
         // Add enhanced portal glow effects
         // Inner glow
@@ -166,25 +193,14 @@ export class PortalState implements GameState {
         this.leftPortal.add(leftOuterGlow);
         this.leftPortal.add(leftParticleRing);
 
-        // Add glows to right portal
-        const rightInnerGlow = new THREE.Mesh(innerGlowGeometry, innerGlowMaterial);
-        const rightOuterGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
-        const rightParticleRing = new THREE.Points(particleRingGeometry, particleRingMaterial);
-        rightParticleRing.rotation.x = Math.PI / 2;
-        this.rightPortal.add(rightInnerGlow);
-        this.rightPortal.add(rightOuterGlow);
-        this.rightPortal.add(rightParticleRing);
-
         // Create portal labels
         this.portalLabels = {
-            left: this.createPortalLabel('Vibeverse Portal', -10),
-            right: this.createPortalLabel('Start Game', 10)
+            left: this.createPortalLabel('Vibeverse Portal', -10)
         };
 
-        // Initialize localized starfield systems for each portal
+        // Initialize localized starfield system for portal
         this.portalStarfields = {
-            left: new StarfieldSystem(this.scene, 2.5, this.leftPortal.position, 500, 4),
-            right: new StarfieldSystem(this.scene, 2.5, this.rightPortal.position, 500, 4)
+            left: new StarfieldSystem(this.scene, 2.5, this.leftPortal.position, 500, 4)
         };
 
         // Position camera
@@ -413,18 +429,12 @@ export class PortalState implements GameState {
     private updatePortalLabels(): void {
         // Convert 3D positions to screen coordinates
         const leftPortalScreen = this.leftPortal.position.clone();
-        const rightPortalScreen = this.rightPortal.position.clone();
 
         leftPortalScreen.project(this.camera);
-        rightPortalScreen.project(this.camera);
 
         // Update left portal label position
         this.portalLabels.left.style.left = `${(leftPortalScreen.x + 1) * window.innerWidth / 2}px`;
         this.portalLabels.left.style.top = `${(-leftPortalScreen.y + 1) * window.innerHeight / 2}px`;
-
-        // Update right portal label position
-        this.portalLabels.right.style.left = `${(rightPortalScreen.x + 1) * window.innerWidth / 2}px`;
-        this.portalLabels.right.style.top = `${(-rightPortalScreen.y + 1) * window.innerHeight / 2}px`;
     }
 
     private setupBackground(): void {
@@ -533,9 +543,11 @@ export class PortalState implements GameState {
         // Remove player
         this.scene.remove(this.player.getGroup());
         
-        // Remove portals and their glow effects
+        // Remove portal and its glow effects
         this.scene.remove(this.leftPortal);
-        this.scene.remove(this.rightPortal);
+        
+        // Remove runway marking
+        this.scene.remove(this.runwayMarking);
         
         // Remove ground
         this.scene.remove(this.ground);
@@ -547,16 +559,14 @@ export class PortalState implements GameState {
         this.flyingPlanes.forEach(plane => this.scene.remove(plane.getGroup()));
         this.flyingPlanes = [];
 
-        // Remove portal labels
+        // Remove portal label
         this.portalLabels.left.remove();
-        this.portalLabels.right.remove();
 
         // Remove title container
         this.titleContainer.remove();
 
-        // Clean up portal starfields
+        // Clean up portal starfield
         this.portalStarfields.left.cleanup();
-        this.portalStarfields.right.cleanup();
 
         // Clean up background texture
         if (this.backgroundTexture) {
@@ -574,7 +584,6 @@ export class PortalState implements GameState {
     public update(deltaTime: number): void {
         // Update flying planes
         this.flyingPlanes.forEach(plane => {
-
             const group = plane.getGroup();
             group.rotation.y = (Math.PI / 4) * (1 + this.musicSystem.getCurrentBeat() % 8);
             group.position.x += deltaTime * 2;
@@ -590,7 +599,6 @@ export class PortalState implements GameState {
 
         this.leftPortal.rotation.y += (Math.PI / 8) * (1 + this.musicSystem.getCurrentBeat() % 8);
         this.leftPortal.rotation.x += (Math.PI / 32) * (1 + this.musicSystem.getCurrentBeat() % 32);
-        // this.leftPortal.scale.set(1 + (Math.sin(this.musicSystem.getCurrentBeat() * 0.1) * 0.5), 1 + (Math.sin(this.musicSystem.getCurrentBeat() * 0.1) * 0.5), 1);
 
         // Update building heights
         this.updateBuildingHeights(deltaTime);
@@ -604,24 +612,34 @@ export class PortalState implements GameState {
             this.player.getGroup().rotation.y = Math.PI * 2;
         }
 
-        // Check for portal collisions
+        // Check for portal and runway marking collisions
         const playerPosition = this.player.getPosition();
         const leftPortalDistance = playerPosition.distanceTo(this.leftPortal.position);
-        const rightPortalDistance = playerPosition.distanceTo(this.rightPortal.position);
+        
+        // Check if player is within the runway marking area
+        const runwayPosition = this.runwayMarking.position;
+        const runwayX = runwayPosition.x;
+        const runwayZ = runwayPosition.z;
+        const playerX = playerPosition.x;
+        const playerZ = playerPosition.z;
+        
+        // Check if player is within the marking's bounds (2 units wide, 4 units long)
+        const isWithinRunwayBounds = 
+            Math.abs(playerX - runwayX) < 1 && // Within 1 unit of centerline
+            Math.abs(playerZ - runwayZ) < 2;   // Within 2 units of center
 
         if (leftPortalDistance < this.portalRadius) {
             // Redirect to Google
             window.location.href = 'http://portal.pieter.com';
-        } else if (rightPortalDistance < this.portalRadius) {
+        } else if (isWithinRunwayBounds) {
             // Transition to PlayState
             const playState = new PlayState(this.scene, this.camera, this.renderer);
             playState.setGameStateManager(this.gameStateManager);
             this.gameStateManager.setState(playState);
         }
 
-        // Update portal starfields
+        // Update portal starfield
         this.portalStarfields.left.update(deltaTime);
-        this.portalStarfields.right.update(deltaTime);
 
         // Update portal label positions
         this.updatePortalLabels();
