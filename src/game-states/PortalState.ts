@@ -28,7 +28,7 @@ export class PortalState implements GameState {
     private backgroundTexture: THREE.CanvasTexture | null = null;
     private ground: THREE.Mesh;
     private portalStarfields: { left: StarfieldSystem };
-    private portalLabels: { left: HTMLElement };
+    private portalLabels: { left: THREE.Sprite | null };
     private cityscape: THREE.Group;
     private flyingPlanes: GLBModel[] = [];
     private audioSystem: AudioSystem;
@@ -262,8 +262,13 @@ export class PortalState implements GameState {
 
         // Create portal labels
         this.portalLabels = {
-            left: this.createPortalLabel('Vibeverse Portal', -10)
+            left: this.createPortalLabel('Vibeverse Portal')
         };
+
+        // Add portal label to scene
+        if (this.portalLabels.left) {
+            this.scene.add(this.portalLabels.left);
+        }
 
         // Initialize localized starfield system for portal
         this.portalStarfields = {
@@ -472,36 +477,38 @@ export class PortalState implements GameState {
         }
     }
 
-    private createPortalLabel(text: string, xPosition: number): HTMLElement {
-        const label = document.createElement('div');
-        label.style.cssText = `
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ffffff;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            z-index: 1000;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            font-family: Arial, sans-serif;
-            pointer-events: none;
-        `;
-        label.textContent = text;
-        document.body.appendChild(label);
-        return label;
+    private createPortalLabel(text: string): THREE.Sprite | null {
+        // Create canvas for text
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
+
+        // Draw text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 33px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, 128, 32);
+
+        // Create texture and sprite
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.SpriteMaterial({ map: texture });
+        const sprite = new THREE.Sprite(material);
+        
+        // Set scale and position
+        sprite.scale.set(4, 1, 1);
+        sprite.position.set(-10, -5, 0); // Position above the portal
+
+        return sprite;
     }
 
     private updatePortalLabels(): void {
-        // Convert 3D positions to screen coordinates
-        const leftPortalScreen = this.leftPortal.position.clone();
-
-        leftPortalScreen.project(this.camera);
-
-        // Update left portal label position
-        this.portalLabels.left.style.left = `${(leftPortalScreen.x + 1) * window.innerWidth / 2}px`;
-        this.portalLabels.left.style.top = `${(-leftPortalScreen.y + 1) * window.innerHeight / 2}px`;
+        if (this.portalLabels.left) {
+            // Make label face camera
+            this.portalLabels.left.quaternion.copy(this.camera.quaternion);
+        }
     }
 
     private setupBackground(): void {
@@ -637,7 +644,11 @@ export class PortalState implements GameState {
         this.flyingPlanes = [];
 
         // Remove portal label
-        this.portalLabels.left.remove();
+        if (this.portalLabels.left) {
+            this.scene.remove(this.portalLabels.left);
+            this.portalLabels.left.material.dispose();
+            this.portalLabels.left = null;
+        }
 
         // Remove title container
         this.titleContainer.remove();
