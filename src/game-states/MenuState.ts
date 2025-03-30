@@ -177,28 +177,49 @@ export class MenuState implements GameState {
     }
 
     private setupMenuPlanes(): void {
-        // Create 4 planes with different colors and patterns
-        const planeColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00];
-        const positions = [
-            new THREE.Vector3(-3, 0, -3),
-            new THREE.Vector3(3, 0, -3),
-            new THREE.Vector3(-3, 0, 3),
-            new THREE.Vector3(3, 0, 3)
+        // Create 8 planes with different colors and patterns
+        const planeColors = [
+            0xff0000, // Red
+            0x00ff00, // Green
+            0x0000ff, // Blue
+            0xffff00, // Yellow
+            0xff00ff, // Magenta
+            0x00ffff, // Cyan
+            0xff8800, // Orange
+            0x8800ff  // Purple
         ];
+        
+        // Define positions in a larger circle
+        const positions = [
+            new THREE.Vector3(-4, 0, -4),  // Top-left
+            new THREE.Vector3(4, 0, -4),   // Top-right
+            new THREE.Vector3(-4, 0, 4),   // Bottom-left
+            new THREE.Vector3(4, 0, 4),    // Bottom-right
+            new THREE.Vector3(0, 0, -4),   // Top
+            new THREE.Vector3(0, 0, 4),    // Bottom
+            new THREE.Vector3(-4, 0, 0),   // Left
+            new THREE.Vector3(4, 0, 0)     // Right
+        ];
+
+        // Define initial rotations
         const rotations = [
             new THREE.Euler(0, 0, 0),
             new THREE.Euler(0, Math.PI / 2, 0),
             new THREE.Euler(0, Math.PI, 0),
+            new THREE.Euler(0, -Math.PI / 2, 0),
+            new THREE.Euler(0, Math.PI / 4, 0),
+            new THREE.Euler(0, -Math.PI / 4, 0),
+            new THREE.Euler(0, Math.PI / 2, 0),
             new THREE.Euler(0, -Math.PI / 2, 0)
         ];
 
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 8; i++) {
             const plane = new MenuPlane(
                 planeColors[i],
                 positions[i],
                 rotations[i],
-                i * Math.PI / 2, // Offset each plane's beat
-                i // Different dance pattern for each plane
+                i * Math.PI / 4, // Offset each plane's beat
+                i % 4 // Cycle through the 4 dance patterns
             );
             this.scene.add(plane.getGroup());
             this.menuPlanes.push(plane);

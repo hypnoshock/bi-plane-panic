@@ -22,8 +22,7 @@ export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
     private screenControlHandler!: ScreenControlHandler;
     private joypadHandler!: JoypadInputHandler;
-    private cpuHandler!: CPUInputHandler;
-    private cpuHandler2!: CPUInputHandler;
+    private cpuHandlers: CPUInputHandler[] = [];
     private gameStateManager!: GameStateManager;
     private backgroundTexture: THREE.CanvasTexture | null = null;
     private audioSystem: AudioSystem;
@@ -159,7 +158,9 @@ export class PlayState implements GameState {
         const playerConfigs = [
             { color: 0x4169e1, isCPU: false }, // Blue player 1 (human)
             { color: 0xff0000, isCPU: true },  // Red player 2 (CPU)
-            { color: 0x800080, isCPU: true }   // Purple player 3 (CPU)
+            { color: 0x800080, isCPU: true },   // Purple player 3 (CPU)
+            // { color: 0x008000, isCPU: true },   // Green player 4 (CPU)
+            // { color: 0xffff00, isCPU: true }   // Yellow player 5 (CPU)
         ];
 
         // Create and position all players
@@ -245,22 +246,21 @@ export class PlayState implements GameState {
             this.handleInput(event, isPress);
         };
 
-        // Set up player 1 controls (keyboard and screen)
-        this.joypadHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
-        this.keyboardHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
-        this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
-        
-        // Set up player 2 controls (CPU)
-        this.cpuHandler = new CPUInputHandler();
-        this.cpuHandler.setEventHandler((event, isPress) => inputHandler(`player2_${event}`, isPress));
-        this.cpuHandler.setControlledPlayer(this.players[1]);
-        this.cpuHandler.setOtherPlayers([this.players[0], this.players[2]]);
+        this.players.forEach((player, index) => {
+            if (player.getConfig().isCPU) {
+                const cpuHandler = new CPUInputHandler();
+                cpuHandler.setEventHandler((event, isPress) => inputHandler(`player${index + 1}_${event}`, isPress));
+                cpuHandler.setControlledPlayer(player);
+                cpuHandler.setOtherPlayers(this.players.filter(p => p !== player));
+                this.cpuHandlers.push(cpuHandler);
+            } else {
+                // Set up player 1 controls (keyboard and screen)
+                this.joypadHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
+                this.keyboardHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
+                this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
+            }
+        });
 
-        // Set up player 3 controls (CPU)
-        this.cpuHandler2 = new CPUInputHandler();
-        this.cpuHandler2.setEventHandler((event, isPress) => inputHandler(`player3_${event}`, isPress));
-        this.cpuHandler2.setControlledPlayer(this.players[2]);
-        this.cpuHandler2.setOtherPlayers([this.players[0], this.players[1], this.players[1]]);
     }
 
     private handleInput(event: string, isPress: boolean): void {
@@ -646,8 +646,7 @@ export class PlayState implements GameState {
         this.joypadHandler.update();
         this.keyboardHandler.update();
         this.screenControlHandler.update();
-        this.cpuHandler.update(deltaTime);
-        this.cpuHandler2.update(deltaTime);
+        this.cpuHandlers.forEach(handler => handler.update(deltaTime));
     }
 
     public render(): void {

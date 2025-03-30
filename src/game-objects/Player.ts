@@ -229,4 +229,8 @@ export class Player {
     public getModel(): GLBModel {
         return this.model;
     }
+
+    public getConfig(): { color: THREE.ColorRepresentation, isCPU: boolean } {
+        return this.config;
+    }
 } 

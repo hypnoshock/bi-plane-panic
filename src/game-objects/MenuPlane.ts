@@ -1,9 +1,9 @@
-import { PlaneModel } from '../assets/game-models/PlaneModel';
+import { GLBModel } from '../assets/game-models/GLBModel';
 import * as THREE from 'three';
 import { MusicSystem } from '../systems/MusicSystem';
 
 export class MenuPlane {
-    private model: PlaneModel;
+    private model: GLBModel;
     private group: THREE.Group;
     private basePosition: THREE.Vector3;
     private baseRotation: THREE.Euler;
@@ -18,7 +18,8 @@ export class MenuPlane {
         this.beatOffset = beatOffset;
         this.dancePattern = dancePattern;
         
-        this.model = new PlaneModel(color);
+        this.model = new GLBModel('assets/bi-plane2.glb');
+        this.model.setColor(color);
         this.group = new THREE.Group();
         this.group.add(this.model.getGroup());
         this.group.position.copy(position);
@@ -40,6 +41,8 @@ export class MenuPlane {
                 this.group.position.x = this.basePosition.x + Math.cos(angle) * radius;
                 this.group.position.z = this.basePosition.z + Math.sin(angle) * radius;
                 this.group.rotation.y = angle + Math.PI / 2;
+                this.group.rotation.z = Math.sin(currentBeat * 2) * 0.3;
+                this.group.rotation.x = Math.cos(currentBeat * 2) * 0.2;
                 break;
             
             case 1: // Figure 8 motion
@@ -48,6 +51,8 @@ export class MenuPlane {
                 this.group.position.x = this.basePosition.x + Math.sin(figure8Angle) * figure8Radius;
                 this.group.position.z = this.basePosition.z + Math.sin(figure8Angle / 2) * figure8Radius;
                 this.group.rotation.y = figure8Angle + Math.PI / 2;
+                this.group.rotation.z = Math.sin(figure8Angle) * 0.4;
+                this.group.rotation.x = Math.cos(figure8Angle) * 0.3;
                 break;
             
             case 2: // Wave motion
@@ -55,6 +60,8 @@ export class MenuPlane {
                 const waveSpeed = 2;
                 this.group.position.y = this.basePosition.y + Math.sin(currentBeat * waveSpeed + this.beatOffset) * waveHeight;
                 this.group.rotation.x = Math.sin(currentBeat * waveSpeed + this.beatOffset) * 0.3;
+                this.group.rotation.z = Math.cos(currentBeat * waveSpeed + this.beatOffset) * 0.4;
+                this.group.rotation.y = Math.sin(currentBeat * waveSpeed * 0.5 + this.beatOffset) * 0.5;
                 break;
             
             case 3: // Spiral motion
@@ -64,6 +71,8 @@ export class MenuPlane {
                 this.group.position.z = this.basePosition.z + Math.sin(spiralAngle) * spiralRadius;
                 this.group.position.y = this.basePosition.y + currentBeat * 0.5;
                 this.group.rotation.y = spiralAngle + Math.PI / 2;
+                this.group.rotation.z = Math.sin(spiralAngle) * 0.4;
+                this.group.rotation.x = Math.cos(spiralAngle) * 0.3;
                 break;
         }
 
