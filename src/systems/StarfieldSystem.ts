@@ -10,11 +10,14 @@ export class StarfieldSystem {
     private maxSpeed: number = 4;
     private scene: THREE.Scene;
     private center: THREE.Vector3;
+    private maxDistanceBeyondBoundary: number = 10;
 
-    constructor(scene: THREE.Scene, boundaryRadius: number, center: THREE.Vector3 = new THREE.Vector3(0, 0, 0)) {
+    constructor(scene: THREE.Scene, boundaryRadius: number, center: THREE.Vector3 = new THREE.Vector3(0, 0, 0), particleCount: number = 2000, maxDistanceBeyondBoundary: number = 10) {
         this.boundaryRadius = boundaryRadius;
         this.scene = scene;
         this.center = center;
+        this.particleCount = particleCount;
+        this.maxDistanceBeyondBoundary = maxDistanceBeyondBoundary;
         
         // Create particle geometry
         const geometry = new THREE.BufferGeometry();
@@ -27,7 +30,7 @@ export class StarfieldSystem {
             
             // Random position outside the boundary sphere
             const angle = Math.random() * Math.PI * 2;
-            const distance = this.boundaryRadius + Math.random() * 10; // 10 units beyond boundary
+            const distance = this.boundaryRadius + Math.random() * this.maxDistanceBeyondBoundary;
             this.particlePositions[i3] = this.center.x + Math.cos(angle) * distance;
             this.particlePositions[i3 + 1] = this.center.y + Math.sin(angle) * distance;
             this.particlePositions[i3 + 2] = this.center.z;
@@ -73,7 +76,7 @@ export class StarfieldSystem {
             if (distance < this.boundaryRadius) {
                 // Reset particle to outside boundary
                 const angle = Math.random() * Math.PI * 2;
-                const newDistance = this.boundaryRadius + Math.random() * 10;
+                const newDistance = this.boundaryRadius + Math.random() * this.maxDistanceBeyondBoundary;
                 positions[i3] = this.center.x + Math.cos(angle) * newDistance;
                 positions[i3 + 1] = this.center.y + Math.sin(angle) * newDistance;
                 

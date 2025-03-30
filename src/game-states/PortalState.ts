@@ -145,8 +145,8 @@ export class PortalState implements GameState {
 
         // Initialize localized starfield systems for each portal
         this.portalStarfields = {
-            left: new StarfieldSystem(this.scene, 2.5, this.leftPortal.position),
-            right: new StarfieldSystem(this.scene, 2.5, this.rightPortal.position)
+            left: new StarfieldSystem(this.scene, 2.5, this.leftPortal.position, 500, 4),
+            right: new StarfieldSystem(this.scene, 2.5, this.rightPortal.position, 500, 4)
         };
 
         // Position camera
@@ -575,7 +575,7 @@ export class PortalState implements GameState {
             
             // Only generate new random scale when beat changes
             if (currentBeat !== building.lastBeat) {
-                building.currentTargetScale = 1.2 + (Math.random() * 0.6); // Random scale between 1.2 and 1.8
+                building.currentTargetScale = (currentBeat % 2 === 0) ? 1 : 1.2 - (Math.random() * 0.6); // Random scale between 1.2 and 1.8
                 building.lastBeat = currentBeat;
             }
             
