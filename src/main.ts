@@ -75,6 +75,84 @@ fpsCounter.style.cssText = `
 `;
 gameContainer.appendChild(fpsCounter);
 
+// Create fullscreen button
+const fullscreenButton = document.createElement('button');
+fullscreenButton.style.cssText = `
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid white;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s ease;
+`;
+fullscreenButton.innerHTML = '⛶';
+gameContainer.appendChild(fullscreenButton);
+
+// Function to handle fullscreen
+const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+        // Try standard fullscreen API first
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        }
+        // Fallback for iOS
+        else if ((document as any).webkitFullscreenElement === null) {
+            (document.documentElement as any).webkitRequestFullscreen();
+        }
+        // Fallback for older browsers
+        else if ((document as any).mozFullScreenElement === null) {
+            (document.documentElement as any).mozRequestFullScreen();
+        }
+        // Fallback for MS Edge
+        else if ((document as any).msFullscreenElement === null) {
+            (document.documentElement as any).msRequestFullscreen();
+        }
+    } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+            (document as any).webkitExitFullscreen();
+        } else if ((document as any).mozCancelFullScreen) {
+            (document as any).mozCancelFullScreen();
+        } else if ((document as any).msExitFullscreen) {
+            (document as any).msExitFullscreen();
+        }
+    }
+};
+
+// Update fullscreen button icon
+const updateFullscreenIcon = () => {
+    const isFullscreen = document.fullscreenElement || 
+        (document as any).webkitFullscreenElement || 
+        (document as any).mozFullScreenElement || 
+        (document as any).msFullscreenElement;
+    
+    fullscreenButton.innerHTML = isFullscreen ? '⮌' : '⛶';
+};
+
+// Add event listeners for fullscreen changes
+document.addEventListener('fullscreenchange', updateFullscreenIcon);
+document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
+document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
+
+// Add click handler for fullscreen button
+fullscreenButton.addEventListener('click', toggleFullscreen);
+
 // FPS calculation variables
 let frameCount = 0;
 let lastFpsUpdate = 0;
