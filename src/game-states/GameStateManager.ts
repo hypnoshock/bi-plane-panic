@@ -47,4 +47,8 @@ export class GameStateManager {
         this.screenControlHandler.destroy();
         this.joypadHandler.destroy();
     }
+
+    public getCurrentState(): GameState | null {
+        return this.currentState;
+    }
 } 

@@ -153,6 +153,48 @@ document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
 // Add click handler for fullscreen button
 fullscreenButton.addEventListener('click', toggleFullscreen);
 
+// Create mute button
+const muteButton = document.createElement('button');
+muteButton.style.cssText = `
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid white;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s ease;
+`;
+muteButton.innerHTML = '🔊';
+gameContainer.appendChild(muteButton);
+
+// Function to handle muting
+let isMuted = false;
+const toggleMute = () => {
+    isMuted = !isMuted;
+    const currentState = gameStateManager.getCurrentState();
+    if (currentState) {
+        const audioSystem = currentState.getAudioSystem();
+        if (audioSystem) {
+            const masterGain = audioSystem.getMasterGainNode();
+            masterGain.gain.setValueAtTime(isMuted ? 0 : 1, audioSystem.getAudioContext().currentTime);
+            muteButton.innerHTML = isMuted ? '🔇' : '🔊';
+        }
+    }
+};
+
+// Add click handler for mute button
+muteButton.addEventListener('click', toggleMute);
+
 // FPS calculation variables
 let frameCount = 0;
 let lastFpsUpdate = 0;

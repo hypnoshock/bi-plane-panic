@@ -327,4 +327,8 @@ export class MenuState implements GameState {
     setGameStateManager(manager: GameStateManager): void {
         this.gameStateManager = manager;
     }
+
+    getAudioSystem(): AudioSystem | null {
+        return this.audioSystem;
+    }
 } 

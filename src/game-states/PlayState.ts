@@ -404,6 +404,10 @@ export class PlayState implements GameState {
         this.gameStateManager = manager;
     }
 
+    getAudioSystem(): AudioSystem | null {
+        return this.audioSystem;
+    }
+
     public async enter(): Promise<void> {
         this.setupBackground();
 

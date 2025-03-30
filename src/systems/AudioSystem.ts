@@ -56,6 +56,10 @@ export class AudioSystem {
         return this.drumGainNode;
     }
 
+    public getMasterGainNode(): GainNode {
+        return this.masterGainNode;
+    }
+
     public playKick(time: number): void {
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();

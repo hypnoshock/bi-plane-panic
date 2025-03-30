@@ -569,6 +569,10 @@ export class PortalState implements GameState {
         this.gameStateManager = manager;
     }
 
+    getAudioSystem(): AudioSystem | null {
+        return this.audioSystem;
+    }
+
     public async enter(): Promise<void> {
         this.setupBackground();
         // Show controls only on mobile devices
