@@ -150,6 +150,8 @@ export class PortalState implements GameState {
         };
 
         // Position camera
+        this.camera.position.x = 0;
+        this.camera.position.y = 0;
         this.camera.position.z = 15;
     }
 
@@ -315,7 +317,6 @@ export class PortalState implements GameState {
 
         for (let i = 0; i < planeCount; i++) {
             const planeModel = new GLBModel('assets/bi-plane2.glb');
-            await planeModel.modelLoader;
             planeModel.setColor(colors[i]);
             const group = planeModel.getGroup();
             
@@ -517,10 +518,17 @@ export class PortalState implements GameState {
     public update(deltaTime: number): void {
         // Update flying planes
         this.flyingPlanes.forEach(plane => {
+
             const group = plane.getGroup();
+            group.rotation.y = (Math.PI / 4) * (1 + this.musicSystem.getCurrentBeat() % 8);
             group.position.x += deltaTime * 2;
             if (group.position.x > 50) {
-                group.position.x = -50;
+                // Randomize position and rotation
+                group.position.set(
+                    -50,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 50
+                );
             }
         });
 

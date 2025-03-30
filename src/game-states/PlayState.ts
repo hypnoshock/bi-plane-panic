@@ -17,6 +17,7 @@ import { MusicSystem } from '../systems/MusicSystem';
 import { BoundarySphere } from '../game-objects/BoundarySphere';
 import { StarfieldSystem } from '../systems/StarfieldSystem';
 import { DebrisSystem } from '../systems/DebrisSystem';
+import { PortalState } from './PortalState';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -266,9 +267,21 @@ export class PlayState implements GameState {
     private handleInput(event: string, isPress: boolean): void {
         // Handle menu return during win state
         if (this.gameOver && event === 'player1_button2' && isPress) {
+
+
+        // Check for query string 'portal'
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('portal') === 'true') {
+            const portalState = new PortalState(this.scene, this.camera, this.renderer);
+            portalState.setGameStateManager(this.gameStateManager);
+            this.gameStateManager.setState(portalState);
+        } else {
+            // Create and set initial state
             const menuState = new MenuState(this.scene, this.camera, this.renderer);
             menuState.setGameStateManager(this.gameStateManager);
             this.gameStateManager.setState(menuState);
+        }
+
             return;
         }
         
