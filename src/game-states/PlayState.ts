@@ -50,6 +50,8 @@ export class PlayState implements GameState {
     private cameraTargetPosition: THREE.Vector3 | null = null;
     private debrisSystem: DebrisSystem;
     private countdownText: HTMLElement | null = null;
+    private playerIndicator: THREE.Sprite | null = null;
+    private playerIndicatorText: THREE.Sprite | null = null;
     private countdownState: 'countdown' | 'playing' = 'countdown';
     private countdownTime: number = 3;
     private countdownTimer: number = 0;
@@ -83,6 +85,48 @@ export class PlayState implements GameState {
         this.smokeSystem = new SmokeSystem(this.scene);
         this.starfieldSystem = new StarfieldSystem(this.scene, this.boundaryRadius);
         this.debrisSystem = new DebrisSystem(this.scene);
+
+        // Create player indicator (arrow)
+        const arrowCanvas = document.createElement('canvas');
+        arrowCanvas.width = 64;
+        arrowCanvas.height = 64;
+        const arrowCtx = arrowCanvas.getContext('2d');
+        if (arrowCtx) {
+            // Draw yellow arrow
+            arrowCtx.fillStyle = '#ffd700';
+            arrowCtx.beginPath();
+            arrowCtx.moveTo(32, 0);
+            arrowCtx.lineTo(0, 64);
+            arrowCtx.lineTo(64, 64);
+            arrowCtx.closePath();
+            arrowCtx.fill();
+        }
+        const arrowTexture = new THREE.CanvasTexture(arrowCanvas);
+        const arrowMaterial = new THREE.SpriteMaterial({ map: arrowTexture });
+        this.playerIndicator = new THREE.Sprite(arrowMaterial);
+        this.playerIndicator.scale.set(2, 2, 1);
+        this.playerIndicator.visible = false;
+        this.scene.add(this.playerIndicator);
+
+        // Create player indicator text
+        const textCanvas = document.createElement('canvas');
+        textCanvas.width = 128;
+        textCanvas.height = 64;
+        const textCtx = textCanvas.getContext('2d');
+        if (textCtx) {
+            // Draw yellow text
+            textCtx.fillStyle = '#ffd700';
+            textCtx.font = 'bold 48px Arial';
+            textCtx.textAlign = 'center';
+            textCtx.textBaseline = 'middle';
+            textCtx.fillText('You', 64, 32);
+        }
+        const textTexture = new THREE.CanvasTexture(textCanvas);
+        const textMaterial = new THREE.SpriteMaterial({ map: textTexture });
+        this.playerIndicatorText = new THREE.Sprite(textMaterial);
+        this.playerIndicatorText.scale.set(3, 1.5, 1);
+        this.playerIndicatorText.visible = false;
+        this.scene.add(this.playerIndicatorText);
 
         // Create countdown text element
         this.countdownText = document.createElement('div');
@@ -376,6 +420,14 @@ export class PlayState implements GameState {
             this.countdownText.style.display = 'block';
             this.countdownText.textContent = this.countdownTime.toString();
         }
+
+        // Show player indicators
+        if (this.playerIndicator) {
+            this.playerIndicator.visible = true;
+        }
+        if (this.playerIndicatorText) {
+            this.playerIndicatorText.visible = true;
+        }
         
         // Load game music but don't play it yet
         await this.musicSystem.loadTrack('game-music.json');
@@ -415,6 +467,18 @@ export class PlayState implements GameState {
         if (this.countdownText) {
             this.countdownText.remove();
             this.countdownText = null;
+        }
+
+        // Clean up player indicators
+        if (this.playerIndicator) {
+            this.scene.remove(this.playerIndicator);
+            this.playerIndicator.material.dispose();
+            this.playerIndicator = null;
+        }
+        if (this.playerIndicatorText) {
+            this.scene.remove(this.playerIndicatorText);
+            this.playerIndicatorText.material.dispose();
+            this.playerIndicatorText = null;
         }
 
         // Clean up
@@ -516,6 +580,24 @@ export class PlayState implements GameState {
         if (this.countdownState === 'countdown') {
             this.countdownTimer += deltaTime;
             
+            // Update player indicator position
+            if (this.playerIndicator && this.playerIndicatorText && this.players.length > 0) {
+                const playerPosition = this.players[0].getPosition();
+                
+                // Position arrow above player
+                this.playerIndicator.position.copy(playerPosition);
+                this.playerIndicator.position.y += 2; // 2 units above player
+                this.playerIndicator.rotation.z = Math.PI; // Rotate 180 degrees to point down
+                
+                // Position text above arrow
+                this.playerIndicatorText.position.copy(playerPosition);
+                this.playerIndicatorText.position.y += 4; // 4 units above player
+                
+                // Make indicators face camera
+                this.playerIndicator.quaternion.copy(this.camera.quaternion);
+                this.playerIndicatorText.quaternion.copy(this.camera.quaternion);
+            }
+            
             if (this.countdownTimer >= this.countdownInterval) {
                 this.countdownTimer = 0;
                 this.countdownTime--;
@@ -537,6 +619,13 @@ export class PlayState implements GameState {
                                 this.countdownText.style.display = 'none';
                             }
                         }, 500);
+                    }
+                    // Hide player indicators
+                    if (this.playerIndicator) {
+                        this.playerIndicator.visible = false;
+                    }
+                    if (this.playerIndicatorText) {
+                        this.playerIndicatorText.visible = false;
                     }
                     // Start the music
                     this.musicSystem.play();
