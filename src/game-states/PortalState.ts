@@ -97,47 +97,83 @@ export class PortalState implements GameState {
         this.createFlyingPlanes();
 
         // Create portals with more visible materials
-        const portalGeometry = new THREE.CircleGeometry(this.portalRadius, 32);
+        const portalGeometry = new THREE.TorusGeometry(this.portalRadius, 0.3, 16, 32);
         const portalMaterial = new THREE.MeshPhongMaterial({
             color: this.portalColor,
             emissive: this.portalColor,
-            emissiveIntensity: 1.0, // Increased from 0.5 to 1.0
-            shininess: 100
+            emissiveIntensity: 1.0,
+            shininess: 100,
         });
 
         // Left portal
         this.leftPortal = new THREE.Group();
         const leftPortalMesh = new THREE.Mesh(portalGeometry, portalMaterial);
         this.leftPortal.add(leftPortalMesh);
-        this.leftPortal.position.set(-10, -7.9, 0); // Slightly above ground
-        this.leftPortal.rotation.x = -Math.PI / 2; // Face upward
+        this.leftPortal.position.set(-10, -7.9, 0);
+        // this.leftPortal.rotation.z = -Math.PI / 2;
+        this.leftPortal.rotation.set( 0, -Math.PI / 2, 0);
         this.scene.add(this.leftPortal);
 
         // Right portal
         this.rightPortal = new THREE.Group();
         const rightPortalMesh = new THREE.Mesh(portalGeometry, portalMaterial);
         this.rightPortal.add(rightPortalMesh);
-        this.rightPortal.position.set(10, -7.9, 0); // Slightly above ground
-        this.rightPortal.rotation.x = -Math.PI / 2; // Face upward
+        this.rightPortal.position.set(10, -7.9, 0);
+        this.rightPortal.rotation.x = -Math.PI / 2;
         this.scene.add(this.rightPortal);
 
-        // Add portal glow effect
-        const glowGeometry = new THREE.CircleGeometry(this.portalRadius * 1.5, 32);
-        const glowMaterial = new THREE.MeshPhongMaterial({
+        // Add enhanced portal glow effects
+        // Inner glow
+        const innerGlowGeometry = new THREE.TorusGeometry(this.portalRadius * 0.9, 0.4, 16, 32);
+        const innerGlowMaterial = new THREE.MeshPhongMaterial({
             color: this.portalColor,
             emissive: this.portalColor,
-            emissiveIntensity: 0.3,
+            emissiveIntensity: 0.8,
             transparent: true,
-            opacity: 0.5
+            opacity: 0.6
         });
 
-        // Left portal glow
-        const leftGlow = new THREE.Mesh(glowGeometry, glowMaterial);
-        this.leftPortal.add(leftGlow);
+        // Outer glow
+        const outerGlowGeometry = new THREE.TorusGeometry(this.portalRadius * 1.2, 0.2, 16, 32);
+        const outerGlowMaterial = new THREE.MeshPhongMaterial({
+            color: this.portalColor,
+            emissive: this.portalColor,
+            emissiveIntensity: 0.4,
+            transparent: true,
+            opacity: 0.3
+        });
 
-        // Right portal glow
-        const rightGlow = new THREE.Mesh(glowGeometry, glowMaterial);
-        this.rightPortal.add(rightGlow);
+        // Particle ring effect
+        const particleRingGeometry = new THREE.RingGeometry(
+            this.portalRadius * 0.8,
+            this.portalRadius * 1.4,
+            32
+        );
+        const particleRingMaterial = new THREE.PointsMaterial({
+            color: this.portalColor,
+            size: 0.1,
+            transparent: true,
+            opacity: 0.5,
+            blending: THREE.AdditiveBlending
+        });
+
+        // Add glows to left portal
+        const leftInnerGlow = new THREE.Mesh(innerGlowGeometry, innerGlowMaterial);
+        const leftOuterGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+        const leftParticleRing = new THREE.Points(particleRingGeometry, particleRingMaterial);
+        leftParticleRing.rotation.x = Math.PI / 2;
+        this.leftPortal.add(leftInnerGlow);
+        this.leftPortal.add(leftOuterGlow);
+        this.leftPortal.add(leftParticleRing);
+
+        // Add glows to right portal
+        const rightInnerGlow = new THREE.Mesh(innerGlowGeometry, innerGlowMaterial);
+        const rightOuterGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+        const rightParticleRing = new THREE.Points(particleRingGeometry, particleRingMaterial);
+        rightParticleRing.rotation.x = Math.PI / 2;
+        this.rightPortal.add(rightInnerGlow);
+        this.rightPortal.add(rightOuterGlow);
+        this.rightPortal.add(rightParticleRing);
 
         // Create portal labels
         this.portalLabels = {
@@ -551,6 +587,10 @@ export class PortalState implements GameState {
                 );                
             }
         });
+
+        this.leftPortal.rotation.y += (Math.PI / 8) * (1 + this.musicSystem.getCurrentBeat() % 8);
+        this.leftPortal.rotation.x += (Math.PI / 32) * (1 + this.musicSystem.getCurrentBeat() % 32);
+        // this.leftPortal.scale.set(1 + (Math.sin(this.musicSystem.getCurrentBeat() * 0.1) * 0.5), 1 + (Math.sin(this.musicSystem.getCurrentBeat() * 0.1) * 0.5), 1);
 
         // Update building heights
         this.updateBuildingHeights(deltaTime);
