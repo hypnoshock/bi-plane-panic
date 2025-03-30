@@ -1,7 +1,6 @@
 import { KeyboardHandler } from '../systems/input-handlers/KeyboardHandler';
 import { ScreenControlHandler } from '../systems/input-handlers/ScreenControlHandler';
 import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
-import { AudioSystem } from '../systems/AudioSystem';
 
 export interface GameState {
     enter(): void;
@@ -13,5 +12,4 @@ export interface GameState {
         screenControlHandler: ScreenControlHandler,
         joypadHandler: JoypadInputHandler
     ): void;
-    getAudioSystem(): AudioSystem | null;
 } 

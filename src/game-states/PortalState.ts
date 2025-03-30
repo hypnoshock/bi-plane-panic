@@ -31,7 +31,6 @@ export class PortalState implements GameState {
     private portalLabels: { left: THREE.Sprite | null };
     private cityscape: THREE.Group;
     private flyingPlanes: GLBModel[] = [];
-    private audioSystem: AudioSystem;
     private musicSystem: MusicSystem;
     private titleContainer: HTMLDivElement;
     private playerInputFlags: { [key: number]: {
@@ -52,9 +51,10 @@ export class PortalState implements GameState {
     constructor(
         private scene: THREE.Scene,
         private camera: THREE.PerspectiveCamera,
-        private renderer: THREE.WebGLRenderer
+        private renderer: THREE.WebGLRenderer,
+        private audioSystem: AudioSystem
     ) {
-        this.audioSystem = new AudioSystem();
+        this.audioSystem = audioSystem;
         this.musicSystem = new MusicSystem(this.audioSystem);
         
         // Create title container
@@ -569,10 +569,6 @@ export class PortalState implements GameState {
         this.gameStateManager = manager;
     }
 
-    getAudioSystem(): AudioSystem | null {
-        return this.audioSystem;
-    }
-
     public async enter(): Promise<void> {
         this.setupBackground();
         // Show controls only on mobile devices
@@ -670,7 +666,7 @@ export class PortalState implements GameState {
         // Clean up music system
         this.musicSystem.stop();
         this.musicSystem.cleanup();
-        this.audioSystem.cleanup();
+
     }
 
     public update(deltaTime: number): void {
@@ -725,7 +721,7 @@ export class PortalState implements GameState {
             window.location.href = 'http://portal.pieter.com';
         } else if (isWithinRunwayBounds) {
             // Transition to PlayState
-            const playState = new PlayState(this.scene, this.camera, this.renderer);
+            const playState = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem);
             playState.setGameStateManager(this.gameStateManager);
             this.gameStateManager.setState(playState);
         }

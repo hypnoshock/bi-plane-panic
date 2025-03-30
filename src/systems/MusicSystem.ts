@@ -27,7 +27,6 @@ export class MusicSystem {
     private currentTrack: MusicTrack | null = null;
     private isPlaying: boolean = false;
     private startTime: number = 0;
-    private lastBeat: number = 0;
     private musicOscillator: OscillatorNode | null = null;
     private musicGain: GainNode | null = null;
     private musicFilter: BiquadFilterNode | null = null;

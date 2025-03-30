@@ -26,7 +26,6 @@ export class PlayState implements GameState {
     private cpuHandlers: CPUInputHandler[] = [];
     private gameStateManager!: GameStateManager;
     private backgroundTexture: THREE.CanvasTexture | null = null;
-    private audioSystem: AudioSystem;
     private musicSystem: MusicSystem;
     private players: Player[] = [];
     private bulletSystem: BulletSystem;
@@ -74,10 +73,10 @@ export class PlayState implements GameState {
     constructor(
         private scene: THREE.Scene,
         private camera: THREE.PerspectiveCamera,
-        private renderer: THREE.WebGLRenderer
+        private renderer: THREE.WebGLRenderer,
+        private audioSystem: AudioSystem
     ) {
-        // Create audio system
-        this.audioSystem = new AudioSystem();
+        // Create music system
         this.musicSystem = new MusicSystem(this.audioSystem);
         this.bulletSystem = new BulletSystem(this.scene, this.audioSystem);
         this.explosionSystem = new ExplosionSystem(this.scene, this.audioSystem);
@@ -311,21 +310,18 @@ export class PlayState implements GameState {
     private handleInput(event: string, isPress: boolean): void {
         // Handle menu return during win state
         if (this.gameOver && event === 'player1_button2' && isPress) {
-
-
-        // Check for query string 'portal'
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('portal') === 'true') {
-            const portalState = new PortalState(this.scene, this.camera, this.renderer);
-            portalState.setGameStateManager(this.gameStateManager);
-            this.gameStateManager.setState(portalState);
-        } else {
-            // Create and set initial state
-            const menuState = new MenuState(this.scene, this.camera, this.renderer);
-            menuState.setGameStateManager(this.gameStateManager);
-            this.gameStateManager.setState(menuState);
-        }
-
+            // Check for query string 'portal'
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('portal') === 'true') {
+                const portalState = new PortalState(this.scene, this.camera, this.renderer, this.audioSystem);
+                portalState.setGameStateManager(this.gameStateManager);
+                this.gameStateManager.setState(portalState);
+            } else {
+                // Create and set initial state
+                const menuState = new MenuState(this.scene, this.camera, this.renderer, this.audioSystem);
+                menuState.setGameStateManager(this.gameStateManager);
+                this.gameStateManager.setState(menuState);
+            }
             return;
         }
         
@@ -404,10 +400,6 @@ export class PlayState implements GameState {
         this.gameStateManager = manager;
     }
 
-    getAudioSystem(): AudioSystem | null {
-        return this.audioSystem;
-    }
-
     public async enter(): Promise<void> {
         this.setupBackground();
 
@@ -452,7 +444,7 @@ export class PlayState implements GameState {
         // Stop music
         this.musicSystem.stop();
         this.musicSystem.cleanup();
-        this.audioSystem.cleanup();
+
 
         // Clean up background texture
         if (this.backgroundTexture) {
@@ -668,7 +660,7 @@ export class PlayState implements GameState {
 
                 const flags = this.playerInputFlags[0];
                 if (flags.menu) {
-                    const menuState = new MenuState(this.scene, this.camera, this.renderer);
+                    const menuState = new MenuState(this.scene, this.camera, this.renderer, this.audioSystem);
                     menuState.setGameStateManager(this.gameStateManager);
                     this.gameStateManager.setState(menuState);
                 }

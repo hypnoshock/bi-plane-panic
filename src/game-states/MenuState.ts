@@ -45,11 +45,16 @@ export class MenuState implements GameState {
         '#8b008b'  // Dark Magenta
     ];
 
-    constructor(scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer) {
+    constructor(
+        scene: THREE.Scene, 
+        camera: THREE.PerspectiveCamera, 
+        renderer: THREE.WebGLRenderer,
+        audioSystem: AudioSystem
+    ) {
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
-        this.audioSystem = new AudioSystem();
+        this.audioSystem = audioSystem;
         this.musicSystem = new MusicSystem(this.audioSystem);
         this.setupMenu();
 
@@ -299,7 +304,7 @@ export class MenuState implements GameState {
         this.cleanupMenuPlanes();
         this.musicSystem.stop();
         this.musicSystem.cleanup();
-        this.audioSystem.cleanup();
+
 
         if (this.backgroundTexture) {
             this.backgroundTexture.dispose();
@@ -326,9 +331,5 @@ export class MenuState implements GameState {
 
     setGameStateManager(manager: GameStateManager): void {
         this.gameStateManager = manager;
-    }
-
-    getAudioSystem(): AudioSystem | null {
-        return this.audioSystem;
     }
 } 

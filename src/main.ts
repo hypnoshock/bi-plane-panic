@@ -3,9 +3,13 @@ import * as THREE from 'three';
 import { GameStateManager } from './game-states/GameStateManager';
 import { MenuState } from './game-states/MenuState';
 import { PlayState } from './game-states/PlayState';
+import { AudioSystem } from './systems/AudioSystem';
 
 // Create scene, camera, and renderer
 const scene: THREE.Scene = new THREE.Scene();
+
+// Create audio system
+const audioSystem = new AudioSystem();
 
 // Create main container that takes up the full viewport
 const container = document.createElement('div');
@@ -181,14 +185,10 @@ gameContainer.appendChild(muteButton);
 let isMuted = false;
 const toggleMute = () => {
     isMuted = !isMuted;
-    const currentState = gameStateManager.getCurrentState();
-    if (currentState) {
-        const audioSystem = currentState.getAudioSystem();
-        if (audioSystem) {
-            const masterGain = audioSystem.getMasterGainNode();
-            masterGain.gain.setValueAtTime(isMuted ? 0 : 1, audioSystem.getAudioContext().currentTime);
-            muteButton.innerHTML = isMuted ? '🔇' : '🔊';
-        }
+    if (audioSystem) {
+        const masterGain = audioSystem.getMasterGainNode();
+        masterGain.gain.setValueAtTime(isMuted ? 0 : 1, audioSystem.getAudioContext().currentTime);
+        muteButton.innerHTML = isMuted ? '🔇' : '🔊';
     }
 };
 
@@ -204,17 +204,17 @@ let frameTimes: number[] = [];
 const frameTimeHistorySize = 60; // Keep track of last 60 frames
 
 // Create game state manager
-const gameStateManager = new GameStateManager();
+const gameStateManager = new GameStateManager(audioSystem);
 
 // Check for query string 'portal'
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('portal') === 'true') {
-    const playState = new PlayState(scene, camera, renderer);
+    const playState = new PlayState(scene, camera, renderer, audioSystem);
     playState.setGameStateManager(gameStateManager);
     gameStateManager.setState(playState);
 } else {
     // Create and set initial state
-    const menuState = new MenuState(scene, camera, renderer);
+    const menuState = new MenuState(scene, camera, renderer, audioSystem);
     menuState.setGameStateManager(gameStateManager);
     gameStateManager.setState(menuState);
 }

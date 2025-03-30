@@ -2,14 +2,17 @@ import { GameState } from './GameState';
 import { KeyboardHandler } from '../systems/input-handlers/KeyboardHandler';
 import { ScreenControlHandler } from '../systems/input-handlers/ScreenControlHandler';
 import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
+import { AudioSystem } from '../systems/AudioSystem';
 
 export class GameStateManager {
     private currentState: GameState | null = null;
     private keyboardHandler: KeyboardHandler;
     private screenControlHandler: ScreenControlHandler;
     private joypadHandler: JoypadInputHandler;
+    private audioSystem: AudioSystem;
 
-    constructor() {
+    constructor(audioSystem: AudioSystem) {
+        this.audioSystem = audioSystem;
         // Create shared input handlers
         this.keyboardHandler = new KeyboardHandler(() => {});
         this.screenControlHandler = new ScreenControlHandler(() => {});
