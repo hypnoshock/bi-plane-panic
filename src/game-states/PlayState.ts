@@ -18,7 +18,6 @@ import { BoundarySphere } from '../game-objects/BoundarySphere';
 import { StarfieldSystem } from '../systems/StarfieldSystem';
 import { DebrisSystem } from '../systems/DebrisSystem';
 import { PortalState } from './PortalState';
-import { ScoreSystem } from '../systems/ScoreSystem';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -60,7 +59,6 @@ export class PlayState implements GameState {
     private cameraShakeDuration: number = 0.5; // Duration of shake in seconds
     private cameraShakeTime: number = 0; // Current time in shake animation
     private isCameraShaking: boolean = false;
-    private scoreSystem: ScoreSystem;
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -87,7 +85,6 @@ export class PlayState implements GameState {
         this.smokeSystem = new SmokeSystem(this.scene);
         this.starfieldSystem = new StarfieldSystem(this.scene, this.boundaryRadius);
         this.debrisSystem = new DebrisSystem(this.scene);
-        this.scoreSystem = new ScoreSystem(this.uiContainer);
 
         // Create player indicator (arrow)
         const arrowCanvas = document.createElement('canvas');
@@ -148,7 +145,7 @@ export class PlayState implements GameState {
             font-family: Arial, sans-serif;
             animation: pulse 0.5s ease-in-out;
         `;
-        document.body.appendChild(this.countdownText);
+        this.uiContainer.appendChild(this.countdownText);
 
         // Add pulse animation
         const style = document.createElement('style');
@@ -165,11 +162,11 @@ export class PlayState implements GameState {
         this.winnerText = document.createElement('div');
         this.winnerText.style.cssText = `
             position: absolute;
-            top: 50%;
+            top: 25%;
             left: 50%;
             transform: translate(-50%, -50%);
             color: #ffd700;
-            font-size: 48rem;
+            font-size: 90rem;
             font-weight: bold;
             text-align: center;
             display: none;
@@ -177,7 +174,7 @@ export class PlayState implements GameState {
             text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
             font-family: Arial, sans-serif;
         `;
-        document.body.appendChild(this.winnerText);
+        this.uiContainer.appendChild(this.winnerText);
 
         // Create menu return text element
         this.menuReturnText = document.createElement('div');
@@ -187,7 +184,7 @@ export class PlayState implements GameState {
             left: 50%;
             transform: translateX(-50%);
             color: #ff0000;
-            font-size: 24rem;
+            font-size: 45rem;
             font-weight: bold;
             text-align: center;
             display: none;
@@ -196,7 +193,7 @@ export class PlayState implements GameState {
             font-family: Arial, sans-serif;
         `;
         this.menuReturnText.textContent = 'Press B button to return to menu';
-        document.body.appendChild(this.menuReturnText);
+        this.uiContainer.appendChild(this.menuReturnText);
 
         // Create boundary sphere
         this.boundarySphere = new BoundarySphere();

@@ -6,6 +6,10 @@ import { PlayState } from './game-states/PlayState';
 import { AudioSystem } from './systems/AudioSystem';
 import { PortalState } from './game-states/PortalState';
 
+function isMobileDevice(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 // Create scene, camera, and renderer
 const scene: THREE.Scene = new THREE.Scene();
 
@@ -18,8 +22,8 @@ container.style.cssText = `
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -32,8 +36,8 @@ document.body.appendChild(container);
 const gameContainer = document.createElement('div');
 gameContainer.style.cssText = `
     position: relative;
-    width: min(100vw, 100vh * 16/9);
-    height: min(100vh, 100vw * 9/16);
+    width: min(100dvw, 100dvh * 16/9);
+    height: min(100dvh, 100dvw * 9/16);
     background-color: #000;
 `;
 container.appendChild(gameContainer);
@@ -98,21 +102,21 @@ fullscreenButton.style.cssText = `
     position: absolute;
     top: 20rem;
     right: 20rem;
-    width: 60rem;
-    height: 60rem;
+    width: ${isMobileDevice() ? '120rem' : '60rem'};
+    height: ${isMobileDevice() ? '120rem' : '60rem'};
     background: rgba(0, 0, 0, 0.5);
     border: 2rem solid white;
     border-radius: 50%;
     color: white;
-    font-size: 34rem;
+    font-size: ${isMobileDevice() ? '70rem' : '34rem'};
     cursor: pointer;
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    transition: all 0.2s ease;
 `;
+
 fullscreenButton.innerHTML = '⛶';
 uiContainer.appendChild(fullscreenButton);
 
@@ -176,20 +180,19 @@ muteButton.style.cssText = `
     position: absolute;
     bottom: 20rem;
     right: 20rem;
-    width: 60rem;
-    height: 60rem;
+    width: ${isMobileDevice() ? '120rem' : '60rem'};
+    height: ${isMobileDevice() ? '120rem' : '60rem'};
     background: rgba(0, 0, 0, 0.5);
     border: 2rem solid white;
     border-radius: 50%;
     color: white;
-    font-size: 34rem;
+    font-size: ${isMobileDevice() ? '70rem' : '34rem'};
     cursor: pointer;
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    transition: all 0.2s ease;
 `;
 muteButton.innerHTML = '🔊';
 uiContainer.appendChild(muteButton);
@@ -315,34 +318,3 @@ window.addEventListener('unload', () => {
 
 // Start animation
 animate(0);
-
-// Add orientation check for mobile devices
-const orientationMessage = document.createElement('div');
-orientationMessage.style.cssText = `
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    display: none;
-    z-index: 2000;
-    font-family: Arial, sans-serif;
-`;
-gameContainer.appendChild(orientationMessage);
-
-function checkOrientation() {
-    if (window.innerWidth < window.innerHeight && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        orientationMessage.style.display = 'block';
-    } else {
-        orientationMessage.style.display = 'none';
-    }
-}
-
-// Check orientation on load and resize
-window.addEventListener('load', checkOrientation);
-window.addEventListener('resize', checkOrientation);
-window.addEventListener('orientationchange', checkOrientation); 
