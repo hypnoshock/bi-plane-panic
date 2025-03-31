@@ -628,6 +628,7 @@ export class PlayState implements GameState {
                     }
                     // Start the music
                     this.musicSystem.play();
+
                     // Calculate and set the target camera distance for gameplay
                     this.targetCameraZ = this.calculateRequiredCameraDistance();
                 }
@@ -636,6 +637,7 @@ export class PlayState implements GameState {
         }
 
         if (this.gameOver) {
+            this.musicSystem.setSpeed(1.0);
             // When game is over, smoothly move camera to winner's position and zoom in
             if (this.winner) {
                 const winnerPosition = this.winner.getPosition();
@@ -730,6 +732,18 @@ export class PlayState implements GameState {
         const currentZ = this.camera.position.z;
         const newZ = THREE.MathUtils.lerp(currentZ, this.targetCameraZ, deltaTime * this.cameraZoomSpeed);
         this.camera.position.z = newZ;
+
+        // only two players remaining
+        const remainingPlayers = this.players.filter(player => !player.isDead());
+        if (remainingPlayers.length === 2) {
+            if (remainingPlayers.some(player => player.getEnergy() === 1)) {
+                this.musicSystem.setSpeed(1.5);
+            } else {
+                this.musicSystem.setSpeed(1.2);
+            }
+        } else {
+            this.musicSystem.setSpeed(1.0);
+        }
 
         // Update systems
         this.bulletSystem.update(deltaTime);

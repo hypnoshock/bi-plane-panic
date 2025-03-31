@@ -30,6 +30,7 @@ export class MusicSystem {
     private currentBeat: number = 0;
     private lastProcessedBeat: number = -1;
     private lastUpdateTime: number = 0;
+    private speedMultiplier: number = 1.0;
     private musicOscillator: OscillatorNode | null = null;
     private musicGain: GainNode | null = null;
     private musicFilter: BiquadFilterNode | null = null;
@@ -173,6 +174,10 @@ export class MusicSystem {
         }
     }
 
+    public setSpeed(speed: number): void {
+        this.speedMultiplier = speed;
+    }
+
     public play(): void {
         if (!this.currentTrack || this.isPlaying) return;
 
@@ -181,6 +186,7 @@ export class MusicSystem {
         this.lastUpdateTime = this.startTime;
         this.currentBeat = 0;
         this.lastProcessedBeat = -1;
+        this.speedMultiplier = 1.0;
         this.activeNotes.clear();
         this.activeBassNotes.clear();
 
@@ -202,8 +208,8 @@ export class MusicSystem {
         const deltaTime = currentTime - this.lastUpdateTime;
         this.lastUpdateTime = currentTime;
 
-        // Calculate current beat based on elapsed time
-        const beatsPerSecond = this.currentTrack.bpm / 60;
+        // Calculate current beat based on elapsed time and speed multiplier
+        const beatsPerSecond = (this.currentTrack.bpm / 60) * this.speedMultiplier;
         const newBeat = Math.floor((currentTime - this.startTime) * beatsPerSecond);
         
         // Handle loop
@@ -249,7 +255,7 @@ export class MusicSystem {
         this.lastProcessedBeat = this.currentBeat;
 
         // Clean up old notes from active sets
-        const beatDuration = 60 / this.currentTrack.bpm;
+        const beatDuration = 60 / (this.currentTrack.bpm * this.speedMultiplier);
         const maxNoteDuration = Math.max(
             ...this.currentTrack.tracks.melody.map(n => n.duration),
             this.currentTrack.tracks.bass ? Math.max(...this.currentTrack.tracks.bass.map(n => n.duration)) : 0
