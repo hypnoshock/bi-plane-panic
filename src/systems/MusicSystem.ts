@@ -28,6 +28,7 @@ export class MusicSystem {
     private isPlaying: boolean = false;
     private startTime: number = 0;
     private currentBeat: number = 0;
+    private lastProcessedBeat: number = -1;
     private lastUpdateTime: number = 0;
     private musicOscillator: OscillatorNode | null = null;
     private musicGain: GainNode | null = null;
@@ -179,6 +180,7 @@ export class MusicSystem {
         this.startTime = this.audioSystem.getAudioContext().currentTime;
         this.lastUpdateTime = this.startTime;
         this.currentBeat = 0;
+        this.lastProcessedBeat = -1;
         this.activeNotes.clear();
         this.activeBassNotes.clear();
 
@@ -204,11 +206,6 @@ export class MusicSystem {
         const beatsPerSecond = this.currentTrack.bpm / 60;
         const newBeat = Math.floor((currentTime - this.startTime) * beatsPerSecond);
         
-        // We've already processed this beat, so we can return
-        if (newBeat <= this.currentBeat) {
-            return;
-        }
-
         // Handle loop
         const totalBeats = Math.max(
             Math.max(...this.currentTrack.tracks.melody.map(n => n.beat)),
@@ -220,8 +217,14 @@ export class MusicSystem {
         if (newBeat >= totalBeats) {
             this.currentBeat = 0;
             this.startTime = currentTime;
+            this.lastProcessedBeat = -1;
         } else {
             this.currentBeat = newBeat;
+        }
+
+        // Only process if we've moved to a new beat
+        if (this.currentBeat <= this.lastProcessedBeat) {
+            return;
         }
 
         // Play notes that should start on this beat
@@ -241,6 +244,9 @@ export class MusicSystem {
 
         // Play drums
         this.playDrums(this.currentBeat, currentTime);
+
+        // Mark this beat as processed
+        this.lastProcessedBeat = this.currentBeat;
 
         // Clean up old notes from active sets
         const beatDuration = 60 / this.currentTrack.bpm;
