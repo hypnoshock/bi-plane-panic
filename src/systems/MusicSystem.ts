@@ -164,7 +164,6 @@ export class MusicSystem {
         const { kick, hihat, clap } = this.currentTrack.tracks.drums;
         if (kick.includes(beat)) {
             this.audioSystem.playKick(time);
-            console.log('play kick');
         }
         if (hihat.includes(beat)) {
             this.audioSystem.playHiHat(time);

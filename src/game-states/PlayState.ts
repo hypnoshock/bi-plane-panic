@@ -545,6 +545,12 @@ export class PlayState implements GameState {
                     player.setGameOver();
                 }
             });
+
+            // Play victory music
+            this.musicSystem.stop();
+            this.musicSystem.loadTrack('victory-music.json').then(() => {
+                this.musicSystem.play();
+            });
         }
     }
 

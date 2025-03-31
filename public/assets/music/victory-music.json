@@ -1,0 +1,55 @@
+{
+    "title": "Victory Music",
+    "bpm": 120,
+    "tracks": {
+        "melody": [
+            {"beat": 0, "frequency": 440, "duration": 0.5},
+            {"beat": 0.5, "frequency": 554.37, "duration": 0.5},
+            {"beat": 1, "frequency": 659.25, "duration": 0.5},
+            {"beat": 1.5, "frequency": 880, "duration": 0.5},
+            {"beat": 2, "frequency": 659.25, "duration": 0.5},
+            {"beat": 2.5, "frequency": 554.37, "duration": 0.5},
+            {"beat": 3, "frequency": 440, "duration": 0.5},
+            {"beat": 3.5, "frequency": 554.37, "duration": 0.5},
+            {"beat": 4, "frequency": 659.25, "duration": 0.5},
+            {"beat": 4.5, "frequency": 880, "duration": 0.5},
+            {"beat": 5, "frequency": 659.25, "duration": 0.5},
+            {"beat": 5.5, "frequency": 554.37, "duration": 0.5},
+            {"beat": 6, "frequency": 440, "duration": 0.5},
+            {"beat": 6.5, "frequency": 554.37, "duration": 0.5},
+            {"beat": 7, "frequency": 659.25, "duration": 0.5},
+            {"beat": 7.5, "frequency": 880, "duration": 0.5},
+            {"beat": 8, "frequency": 659.25, "duration": 0.5},
+            {"beat": 8.5, "frequency": 554.37, "duration": 0.5},
+            {"beat": 9, "frequency": 440, "duration": 0.5},
+            {"beat": 9.5, "frequency": 554.37, "duration": 0.5},
+            {"beat": 10, "frequency": 659.25, "duration": 0.5},
+            {"beat": 10.5, "frequency": 880, "duration": 0.5},
+            {"beat": 11, "frequency": 659.25, "duration": 0.5},
+            {"beat": 11.5, "frequency": 554.37, "duration": 0.5},
+            {"beat": 12, "frequency": 440, "duration": 0.5},
+            {"beat": 12.5, "frequency": 554.37, "duration": 0.5},
+            {"beat": 13, "frequency": 659.25, "duration": 0.5},
+            {"beat": 13.5, "frequency": 880, "duration": 0.5},
+            {"beat": 14, "frequency": 659.25, "duration": 0.5},
+            {"beat": 14.5, "frequency": 554.37, "duration": 0.5},
+            {"beat": 15, "frequency": 440, "duration": 0.5},
+            {"beat": 15.5, "frequency": 554.37, "duration": 0.5}
+        ],
+        "bass": [
+            {"beat": 0, "frequency": 110, "duration": 1.0},
+            {"beat": 2, "frequency": 110, "duration": 1.0},
+            {"beat": 4, "frequency": 110, "duration": 1.0},
+            {"beat": 6, "frequency": 110, "duration": 1.0},
+            {"beat": 8, "frequency": 110, "duration": 1.0},
+            {"beat": 10, "frequency": 110, "duration": 1.0},
+            {"beat": 12, "frequency": 110, "duration": 1.0},
+            {"beat": 14, "frequency": 110, "duration": 1.0}
+        ],
+        "drums": {
+            "kick": [0, 4, 8, 12],
+            "hihat": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12, 12.5, 13, 13.5, 14, 14.5, 15, 15.5],
+            "clap": [2, 6, 10, 14]
+        }
+    }
+} 
