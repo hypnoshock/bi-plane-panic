@@ -19,9 +19,17 @@ import { StarfieldSystem } from '../systems/StarfieldSystem';
 import { DebrisSystem } from '../systems/DebrisSystem';
 import { PortalState } from './PortalState';
 
+interface PlayStateConfig {
+    twoPlayerMode?: boolean;
+    player2Controls?: ScreenControlHandler;
+    player1Area?: HTMLElement | null;
+    player2Area?: HTMLElement | null;
+}
+
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
     private screenControlHandler!: ScreenControlHandler;
+    private player2Controls: ScreenControlHandler | null = null;
     private joypadHandler!: JoypadInputHandler;
     private cpuHandlers: CPUInputHandler[] = [];
     private gameStateManager!: GameStateManager;
@@ -51,6 +59,7 @@ export class PlayState implements GameState {
     private countdownText: HTMLElement | null = null;
     private playerIndicator: THREE.Sprite | null = null;
     private playerIndicatorText: THREE.Sprite | null = null;
+    private player2Indicators: THREE.Object3D[] = []; // Store player 2 indicators for cleanup
     private countdownState: 'countdown' | 'playing' = 'countdown';
     private countdownTime: number = 3;
     private countdownTimer: number = 0;
@@ -59,6 +68,10 @@ export class PlayState implements GameState {
     private cameraShakeDuration: number = 0.5; // Duration of shake in seconds
     private cameraShakeTime: number = 0; // Current time in shake animation
     private isCameraShaking: boolean = false;
+    private twoPlayerMode: boolean = false;
+    private twoPlayerState: any = null;
+    private player1Area: HTMLElement | null = null;
+    private player2Area: HTMLElement | null = null;
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -75,8 +88,17 @@ export class PlayState implements GameState {
         private camera: THREE.PerspectiveCamera,
         private renderer: THREE.WebGLRenderer,
         private audioSystem: AudioSystem,
-        private uiContainer: HTMLElement
+        private uiContainer: HTMLElement,
+        config?: PlayStateConfig
     ) {
+        // Process optional config
+        if (config) {
+            this.twoPlayerMode = config.twoPlayerMode || false;
+            this.player2Controls = config.player2Controls || null;
+            this.player1Area = config.player1Area || null;
+            this.player2Area = config.player2Area || null;
+        }
+
         // Create music system
         this.musicSystem = new MusicSystem(this.audioSystem);
         this.bulletSystem = new BulletSystem(this.scene, this.audioSystem);
@@ -104,87 +126,75 @@ export class PlayState implements GameState {
         const arrowTexture = new THREE.CanvasTexture(arrowCanvas);
         const arrowMaterial = new THREE.SpriteMaterial({ map: arrowTexture });
         this.playerIndicator = new THREE.Sprite(arrowMaterial);
-        this.playerIndicator.scale.set(2, 2, 1);
-        this.playerIndicator.visible = false;
+        this.playerIndicator.scale.set(3, 3, 1);
+        this.playerIndicator.position.set(0, 8, 0);
         this.scene.add(this.playerIndicator);
 
-        // Create player indicator text
+        // Add text canvas for player indicators
         const textCanvas = document.createElement('canvas');
-        textCanvas.width = 128;
+        textCanvas.width = 256;
         textCanvas.height = 64;
         const textCtx = textCanvas.getContext('2d');
         if (textCtx) {
-            // Draw yellow text
+            textCtx.fillStyle = '#000000';
+            textCtx.fillRect(0, 0, 256, 64);
             textCtx.fillStyle = '#ffd700';
-            textCtx.font = 'bold 48px Arial';
+            textCtx.font = 'bold 32px Arial';
             textCtx.textAlign = 'center';
             textCtx.textBaseline = 'middle';
-            textCtx.fillText('You', 64, 32);
+            textCtx.fillText('YOUR PLANE', 128, 32);
         }
         const textTexture = new THREE.CanvasTexture(textCanvas);
         const textMaterial = new THREE.SpriteMaterial({ map: textTexture });
         this.playerIndicatorText = new THREE.Sprite(textMaterial);
-        this.playerIndicatorText.scale.set(3, 1.5, 1);
-        this.playerIndicatorText.visible = false;
+        this.playerIndicatorText.scale.set(10, 2.5, 1);
+        this.playerIndicatorText.position.set(0, 12, 0);
         this.scene.add(this.playerIndicatorText);
 
-        // Create countdown text element
+        // Create countdown text
         this.countdownText = document.createElement('div');
         this.countdownText.style.cssText = `
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #ffd700;
+            color: white;
+            font-size: 200rem;
+            font-weight: bold;
+            text-align: center;
+            z-index: 1000;
+            text-shadow: 2rem 2rem 4rem rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+        `;
+        this.uiContainer.appendChild(this.countdownText);
+
+        // Create winner text
+        this.winnerText = document.createElement('div');
+        this.winnerText.style.cssText = `
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
             font-size: 120rem;
             font-weight: bold;
             text-align: center;
             display: none;
             z-index: 1000;
-            text-shadow: 4rem 4rem 8rem rgba(0, 0, 0, 0.5);
-            font-family: Arial, sans-serif;
-            animation: pulse 0.5s ease-in-out;
-        `;
-        this.uiContainer.appendChild(this.countdownText);
-
-        // Add pulse animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes pulse {
-                0% { transform: translate(-50%, -50%) scale(1); }
-                50% { transform: translate(-50%, -50%) scale(1.2); }
-                100% { transform: translate(-50%, -50%) scale(1); }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Create winner text element
-        this.winnerText = document.createElement('div');
-        this.winnerText.style.cssText = `
-            position: absolute;
-            top: 25%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ffd700;
-            font-size: 90rem;
-            font-weight: bold;
-            text-align: center;
-            display: none;
-            z-index: 1000;
-            text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
+            text-shadow: 2rem 2rem 4rem rgba(0, 0, 0, 0.5);
             font-family: Arial, sans-serif;
         `;
         this.uiContainer.appendChild(this.winnerText);
 
-        // Create menu return text element
+        // Create menu return text
         this.menuReturnText = document.createElement('div');
         this.menuReturnText.style.cssText = `
             position: absolute;
-            bottom: 40rem;
+            top: 60%;
             left: 50%;
-            transform: translateX(-50%);
-            color: #ff0000;
-            font-size: 45rem;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 60rem;
             font-weight: bold;
             text-align: center;
             display: none;
@@ -201,8 +211,8 @@ export class PlayState implements GameState {
 
         // Define player configurations
         const playerConfigs = [
-            { color: 0xff0000, isCPU: false }, // Blue player 1 (human)
-            { color: 0x4169e1, isCPU: true },  // Red player 2 (CPU)
+            { color: 0xff0000, isCPU: false }, // Red player 1 (human)
+            { color: 0x4169e1, isCPU: !this.twoPlayerMode },  // Blue player 2 (CPU or human in 2-player mode)
             { color: 0x800080, isCPU: true },   // Purple player 3 (CPU)
             // { color: 0x008000, isCPU: true },   // Green player 4 (CPU)
             // { color: 0xffff00, isCPU: true }   // Yellow player 5 (CPU)
@@ -299,13 +309,17 @@ export class PlayState implements GameState {
                 cpuHandler.setOtherPlayers(this.players.filter(p => p !== player));
                 this.cpuHandlers.push(cpuHandler);
             } else {
-                // Set up player 1 controls (keyboard and screen)
-                this.joypadHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
-                this.keyboardHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
-                this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
+                if (index === 0) {
+                    // Set up player 1 controls (keyboard and screen)
+                    this.joypadHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
+                    this.keyboardHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
+                    this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
+                } else if (index === 1 && this.twoPlayerMode && this.player2Controls) {
+                    // Set up player 2 controls (screen only)
+                    this.player2Controls.setEventHandler((event, isPress) => inputHandler(`player2_${event}`, isPress));
+                }
             }
         });
-
     }
 
     private handleInput(event: string, isPress: boolean): void {
@@ -418,22 +432,117 @@ export class PlayState implements GameState {
             this.countdownText.textContent = this.countdownTime.toString();
         }
 
-        // Show player indicators
-        if (this.playerIndicator) {
-            this.playerIndicator.visible = true;
-        }
-        if (this.playerIndicatorText) {
-            this.playerIndicatorText.visible = true;
+        // Set up player indicators
+        if (this.twoPlayerMode) {
+            // In two player mode, we'll use different indicators for both players
+            if (this.playerIndicator && this.playerIndicatorText) {
+                // Position the indicator above player 1's plane
+                const player1Pos = this.players[0].getPosition().clone();
+                this.playerIndicator.position.set(player1Pos.x, player1Pos.y + 3, player1Pos.z);
+                this.playerIndicatorText.position.set(player1Pos.x, player1Pos.y + 5, player1Pos.z);
+                
+                // Update the text for player 1
+                const material = this.playerIndicatorText.material as THREE.SpriteMaterial;
+                if (material && material.map && material.map.image) {
+                    const textCanvas = material.map.image;
+                    const textCtx = textCanvas.getContext('2d');
+                    if (textCtx) {
+                        textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+                        textCtx.fillStyle = '#000000';
+                        textCtx.fillRect(0, 0, textCanvas.width, textCanvas.height);
+                        textCtx.fillStyle = '#ff0000'; // Player 1 color
+                        textCtx.font = 'bold 32px Arial';
+                        textCtx.textAlign = 'center';
+                        textCtx.textBaseline = 'middle';
+                        textCtx.fillText('PLAYER 1', textCanvas.width/2, textCanvas.height/2);
+                        material.map.needsUpdate = true;
+                    }
+                }
+                
+                // Create a second indicator for player 2
+                if (this.playerIndicator?.material) {
+                    const spriteMaterial = this.playerIndicator.material as THREE.SpriteMaterial;
+                    if (spriteMaterial.map) {
+                        const arrowTexture = spriteMaterial.map.clone();
+                        const arrowMaterial = new THREE.SpriteMaterial({ map: arrowTexture });
+                        const player2Indicator = new THREE.Sprite(arrowMaterial);
+                        player2Indicator.scale.set(3, 3, 1);
+                        
+                        // Position over player 2's plane
+                        const player2Pos = this.players[1].getPosition().clone();
+                        player2Indicator.position.set(player2Pos.x, player2Pos.y + 3, player2Pos.z);
+                        this.scene.add(player2Indicator);
+                        
+                        // Create text for player 2
+                        const text2Canvas = document.createElement('canvas');
+                        text2Canvas.width = 256;
+                        text2Canvas.height = 64;
+                        const text2Ctx = text2Canvas.getContext('2d');
+                        if (text2Ctx) {
+                            text2Ctx.fillStyle = '#000000';
+                            text2Ctx.fillRect(0, 0, text2Canvas.width, text2Canvas.height);
+                            text2Ctx.fillStyle = '#4169e1'; // Player 2 color
+                            text2Ctx.font = 'bold 32px Arial';
+                            text2Ctx.textAlign = 'center';
+                            text2Ctx.textBaseline = 'middle';
+                            text2Ctx.fillText('PLAYER 2', text2Canvas.width/2, text2Canvas.height/2);
+                        }
+                        const text2Texture = new THREE.CanvasTexture(text2Canvas);
+                        const text2Material = new THREE.SpriteMaterial({ map: text2Texture });
+                        const player2Text = new THREE.Sprite(text2Material);
+                        player2Text.scale.set(10, 2.5, 1);
+                        player2Text.position.set(player2Pos.x, player2Pos.y + 5, player2Pos.z);
+                        this.scene.add(player2Text);
+                        
+                        // Keep track of these for cleanup
+                        this.player2Indicators = [player2Indicator, player2Text];
+                    }
+                }
+            }
+        } else {
+            // Standard single player mode
+            if (this.playerIndicator) {
+                this.playerIndicator.visible = true;
+                this.playerIndicator.position.set(0, 8, 0);
+            }
+            if (this.playerIndicatorText) {
+                this.playerIndicatorText.visible = true;
+                this.playerIndicatorText.position.set(0, 12, 0);
+            }
         }
         
         // Load game music but don't play it yet
         await this.musicSystem.loadTrack('game-music.json');
         
-        // Show controls only on mobile devices
-        if (this.isMobileDevice()) {
+        // Show controls based on game mode
+        if (this.twoPlayerMode) {
+            // Ensure the controls are visible
+            this.screenControlHandler.showControls();
+            
+            if (this.player2Controls) {
+                this.player2Controls.showControls();
+                
+                // Ensure the controls are in the right containers
+                if (this.player1Area && this.player2Area) {
+                    this.moveControlsToArea(this.screenControlHandler, this.player1Area);
+                    this.moveControlsToArea(this.player2Controls, this.player2Area);
+                }
+            }
+        } else if (this.isMobileDevice()) {
             this.screenControlHandler.showControls();
         } else {
             this.screenControlHandler.hideControls();
+        }
+    }
+
+    // Helper method to move controls to a specific area
+    private moveControlsToArea(controls: ScreenControlHandler, area: HTMLElement): void {
+        if (controls && 'container' in controls) {
+            const container = controls['container'] as HTMLElement;
+            if (container && container.parentNode) {
+                container.parentNode.removeChild(container);
+            }
+            area.appendChild(container);
         }
     }
 
@@ -445,7 +554,6 @@ export class PlayState implements GameState {
         // Stop music
         this.musicSystem.stop();
         this.musicSystem.cleanup();
-
 
         // Clean up background texture
         if (this.backgroundTexture) {
@@ -477,8 +585,17 @@ export class PlayState implements GameState {
             this.playerIndicatorText.material.dispose();
             this.playerIndicatorText = null;
         }
-
-        // Clean up
+        
+        // Clean up player 2 indicators if they exist
+        this.player2Indicators.forEach(indicator => {
+            this.scene.remove(indicator);
+            if (indicator instanceof THREE.Sprite) {
+                indicator.material.dispose();
+            }
+        });
+        this.player2Indicators = [];
+        
+        // Clean up systems
         this.starfieldSystem.cleanup();
         this.explosionSystem.cleanup();
         this.bulletSystem.clearBullets();
@@ -493,6 +610,15 @@ export class PlayState implements GameState {
         if (this.menuReturnText) {
             this.menuReturnText.remove();
             this.menuReturnText = null;
+        }
+        
+        // Hide controls based on mode
+        if (this.twoPlayerMode) {
+            // In two-player mode, don't hide the controls
+            // They will be cleaned up by the TwoPlayerState
+        } else {
+            // In normal mode, hide standard controls
+            this.screenControlHandler.hideControls();
         }
     }
 
@@ -773,5 +899,16 @@ export class PlayState implements GameState {
 
     public render(): void {
         this.renderer.render(this.scene, this.camera);
+    }
+
+    // Add this method for TwoPlayerState to call
+    public handleInputOverride(event: string, isPress: boolean): void {
+        // Directly handle the input event
+        this.handleInput(event, isPress);
+    }
+
+    // Add this method to keep a reference to TwoPlayerState
+    public setTwoPlayerState(state: any): void {
+        this.twoPlayerState = state;
     }
 } 

@@ -8,6 +8,7 @@ import { ScreenControlHandler } from '../systems/input-handlers/ScreenControlHan
 import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
 import { MusicSystem } from '../systems/MusicSystem';
 import { MenuPlane } from '../game-objects/MenuPlane';
+import { TwoPlayerState } from './TwoPlayerState';
 
 export class MenuState implements GameState {
     private scene: THREE.Scene;
@@ -17,7 +18,7 @@ export class MenuState implements GameState {
     private menuContainer: HTMLElement = document.createElement('div');
     private uiContainer: HTMLElement;
     private selectedOption: number = 0;
-    private options: string[] = ['Start Game', 'Toggle Fullscreen'];
+    private options: string[] = ['Start Game', '2 Player', 'Toggle Fullscreen'];
     private keyboardHandler!: KeyboardHandler;
     private screenControlHandler!: ScreenControlHandler;
     private joypadHandler!: JoypadInputHandler;
@@ -169,7 +170,12 @@ export class MenuState implements GameState {
                 playState.setGameStateManager(this.gameStateManager);
                 this.gameStateManager.setState(playState);
                 break;
-            case 1: // Toggle Fullscreen
+            case 1: // 2 Player
+                const twoPlayerState = new TwoPlayerState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer);
+                twoPlayerState.setGameStateManager(this.gameStateManager);
+                this.gameStateManager.setState(twoPlayerState);
+                break;
+            case 2: // Toggle Fullscreen
                 this.toggleFullscreen();
                 break;
         }
