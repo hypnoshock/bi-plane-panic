@@ -4,6 +4,7 @@ import { GameStateManager } from './game-states/GameStateManager';
 import { MenuState } from './game-states/MenuState';
 import { PlayState } from './game-states/PlayState';
 import { AudioSystem } from './systems/AudioSystem';
+import { PortalState } from './game-states/PortalState';
 
 // Create scene, camera, and renderer
 const scene: THREE.Scene = new THREE.Scene();
@@ -209,17 +210,31 @@ const gameStateManager = new GameStateManager(audioSystem);
 // Check for query string 'portal'
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('portal') === 'true') {
+    startPortalState();
+} else {
+    // Create and set initial state
+    startMenuState();
+}
+
+let lastTime = 0;
+
+function startPlayState() {
     const playState = new PlayState(scene, camera, renderer, audioSystem);
     playState.setGameStateManager(gameStateManager);
     gameStateManager.setState(playState);
-} else {
-    // Create and set initial state
+}
+
+function startMenuState() {
     const menuState = new MenuState(scene, camera, renderer, audioSystem);
     menuState.setGameStateManager(gameStateManager);
     gameStateManager.setState(menuState);
 }
 
-let lastTime = 0;
+function startPortalState() {
+    const portalState = new PortalState(scene, camera, renderer, audioSystem);
+    portalState.setGameStateManager(gameStateManager);
+    gameStateManager.setState(portalState);
+}
 
 // Animation loop
 function animate(currentTime: number): void {

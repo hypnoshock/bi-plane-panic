@@ -161,7 +161,7 @@ export class MenuState implements GameState {
     private handleSelection(): void {
         switch (this.selectedOption) {
             case 0: // Start Game
-                const playState = new PlayState(this.scene, this.camera, this.renderer);
+                const playState = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem);
                 playState.setGameStateManager(this.gameStateManager);
                 this.gameStateManager.setState(playState);
                 break;
@@ -314,6 +314,7 @@ export class MenuState implements GameState {
     }
 
     update(): void {
+        this.musicSystem.update();
         this.keyboardHandler.update();
         this.screenControlHandler.update();
         this.joypadHandler.update();

@@ -610,7 +610,7 @@ export class PortalState implements GameState {
             </style>
             <div class="title">Bi-Plane Panic</div>
             <div class="instructions">WASD to move.</br>Space = Button A</br>Enter = Button B</div>
-            <div class="call-to-action">Move your red plane to right to play again.</div>
+            <div class="call-to-action">Move your red plane to the right to play</div>
         `;
     }
 
