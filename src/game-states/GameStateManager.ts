@@ -11,7 +11,7 @@ export class GameStateManager {
     private joypadHandler: JoypadInputHandler;
     private audioSystem: AudioSystem;
 
-    constructor(audioSystem: AudioSystem) {
+    constructor(audioSystem: AudioSystem, private uiContainer: HTMLElement) {
         this.audioSystem = audioSystem;
         // Create shared input handlers
         this.keyboardHandler = new KeyboardHandler(() => {});

@@ -116,12 +116,12 @@ button:focus-visible {
     left: 50%;
     transform: translate(-50%, -50%);
     color: red;
-    font-size: 48px;
+    font-size: 45rem;
     font-weight: bold;
     text-align: center;
     display: none;
     z-index: 1000;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 2rem 2rem 4rem rgba(0, 0, 0, 0.5);
 }
 
 .game-over.visible {

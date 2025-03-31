@@ -14,7 +14,8 @@ export class MenuState implements GameState {
     private camera: THREE.PerspectiveCamera;
     private renderer: THREE.WebGLRenderer;
     private gameStateManager!: GameStateManager;
-    private menuContainer!: HTMLDivElement;
+    private menuContainer: HTMLElement = document.createElement('div');
+    private uiContainer: HTMLElement;
     private selectedOption: number = 0;
     private options: string[] = ['Start Game', 'Toggle Fullscreen'];
     private keyboardHandler!: KeyboardHandler;
@@ -49,13 +50,15 @@ export class MenuState implements GameState {
         scene: THREE.Scene, 
         camera: THREE.PerspectiveCamera, 
         renderer: THREE.WebGLRenderer,
-        audioSystem: AudioSystem
+        audioSystem: AudioSystem,
+        uiContainer: HTMLElement
     ) {
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
         this.audioSystem = audioSystem;
         this.musicSystem = new MusicSystem(this.audioSystem);
+        this.uiContainer = uiContainer;
         this.setupMenu();
 
         // Position camera
@@ -109,18 +112,19 @@ export class MenuState implements GameState {
     }
 
     private setupMenu(): void {
-        this.menuContainer = document.createElement('div');
-        this.menuContainer.style.position = 'absolute';
-        this.menuContainer.style.top = '50%';
-        this.menuContainer.style.left = '50%';
-        this.menuContainer.style.transform = 'translate(-50%, -50%)';
-        this.menuContainer.style.textAlign = 'center';
-        this.menuContainer.style.color = 'white';
-        this.menuContainer.style.fontFamily = 'Arial, sans-serif';
-        this.menuContainer.style.fontSize = '6vh';
-        this.menuContainer.style.zIndex = '1000';
-        this.menuContainer.style.touchAction = 'none';
-        document.body.appendChild(this.menuContainer);
+        this.menuContainer.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 65rem;
+            z-index: 1000;
+            touch-action: none;
+        `;
+        this.uiContainer.appendChild(this.menuContainer);
     }
 
     private setupInputHandlers(): void {
@@ -161,7 +165,7 @@ export class MenuState implements GameState {
     private handleSelection(): void {
         switch (this.selectedOption) {
             case 0: // Start Game
-                const playState = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem);
+                const playState = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer);
                 playState.setGameStateManager(this.gameStateManager);
                 this.gameStateManager.setState(playState);
                 break;
@@ -247,17 +251,17 @@ export class MenuState implements GameState {
                     100% { transform: rotate(-2deg); }
                 }
                 .title {
-                    font-size: 12vh;
+                    font-size: 129rem;
                     font-weight: bold;
-                    margin-bottom: 5vh;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                    margin-bottom: 50rem;
+                    text-shadow: 2rem 2rem 4rem rgba(0, 0, 0, 0.5);
                     animation: gentleRotate 3s ease-in-out infinite;
                     display: inline-block;
                 }
                 .menu-item {
-                    margin: 2vh;
+                    margin: 20rem;
                     cursor: pointer;
-                    padding: 1vh;
+                    padding: 10rem;
                     transition: color 0.2s ease;
                 }
                 .menu-item:hover {
@@ -267,7 +271,7 @@ export class MenuState implements GameState {
             <div class="title">Bi-Plane Panic</div>
             ${this.options.map((option, index) => 
                 `<div class="menu-item" 
-                    style="${index === this.selectedOption ? 'color: #ff0000;' : ''}"
+                    style="${index === this.selectedOption ? 'color: #ff0000; font-weight: bold;' : ''}"
                     onclick="window.dispatchEvent(new CustomEvent('menuSelect', { detail: ${index} }))"
                     ontouchstart="this.style.color='#ff6666'"
                     ontouchend="this.style.color='${index === this.selectedOption ? '#ff0000' : 'white'}'">

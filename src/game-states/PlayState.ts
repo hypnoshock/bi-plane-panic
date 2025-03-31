@@ -18,6 +18,7 @@ import { BoundarySphere } from '../game-objects/BoundarySphere';
 import { StarfieldSystem } from '../systems/StarfieldSystem';
 import { DebrisSystem } from '../systems/DebrisSystem';
 import { PortalState } from './PortalState';
+import { ScoreSystem } from '../systems/ScoreSystem';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -59,6 +60,7 @@ export class PlayState implements GameState {
     private cameraShakeDuration: number = 0.5; // Duration of shake in seconds
     private cameraShakeTime: number = 0; // Current time in shake animation
     private isCameraShaking: boolean = false;
+    private scoreSystem: ScoreSystem;
 
     // Input flags for each player
     private playerInputFlags: { [key: number]: {
@@ -74,7 +76,8 @@ export class PlayState implements GameState {
         private scene: THREE.Scene,
         private camera: THREE.PerspectiveCamera,
         private renderer: THREE.WebGLRenderer,
-        private audioSystem: AudioSystem
+        private audioSystem: AudioSystem,
+        private uiContainer: HTMLElement
     ) {
         // Create music system
         this.musicSystem = new MusicSystem(this.audioSystem);
@@ -84,6 +87,7 @@ export class PlayState implements GameState {
         this.smokeSystem = new SmokeSystem(this.scene);
         this.starfieldSystem = new StarfieldSystem(this.scene, this.boundaryRadius);
         this.debrisSystem = new DebrisSystem(this.scene);
+        this.scoreSystem = new ScoreSystem(this.uiContainer);
 
         // Create player indicator (arrow)
         const arrowCanvas = document.createElement('canvas');
@@ -135,12 +139,12 @@ export class PlayState implements GameState {
             left: 50%;
             transform: translate(-50%, -50%);
             color: #ffd700;
-            font-size: 120px;
+            font-size: 120rem;
             font-weight: bold;
             text-align: center;
             display: none;
             z-index: 1000;
-            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+            text-shadow: 4rem 4rem 8rem rgba(0, 0, 0, 0.5);
             font-family: Arial, sans-serif;
             animation: pulse 0.5s ease-in-out;
         `;
@@ -165,12 +169,12 @@ export class PlayState implements GameState {
             left: 50%;
             transform: translate(-50%, -50%);
             color: #ffd700;
-            font-size: 48px;
+            font-size: 48rem;
             font-weight: bold;
             text-align: center;
             display: none;
             z-index: 1000;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
             font-family: Arial, sans-serif;
         `;
         document.body.appendChild(this.winnerText);
@@ -179,16 +183,16 @@ export class PlayState implements GameState {
         this.menuReturnText = document.createElement('div');
         this.menuReturnText.style.cssText = `
             position: absolute;
-            bottom: 40px;
+            bottom: 40rem;
             left: 50%;
             transform: translateX(-50%);
             color: #ff0000;
-            font-size: 24px;
+            font-size: 24rem;
             font-weight: bold;
             text-align: center;
             display: none;
             z-index: 1000;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 2rem 2rem 4rem rgba(0, 0, 0, 0.5);
             font-family: Arial, sans-serif;
         `;
         this.menuReturnText.textContent = 'Press B button to return to menu';
@@ -313,12 +317,12 @@ export class PlayState implements GameState {
             // Check for query string 'portal'
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('portal') === 'true') {
-                const portalState = new PortalState(this.scene, this.camera, this.renderer, this.audioSystem);
+                const portalState = new PortalState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer as HTMLDivElement);
                 portalState.setGameStateManager(this.gameStateManager);
                 this.gameStateManager.setState(portalState);
             } else {
                 // Create and set initial state
-                const menuState = new MenuState(this.scene, this.camera, this.renderer, this.audioSystem);
+                const menuState = new MenuState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer as HTMLDivElement);
                 menuState.setGameStateManager(this.gameStateManager);
                 this.gameStateManager.setState(menuState);
             }
@@ -672,7 +676,7 @@ export class PlayState implements GameState {
 
                 const flags = this.playerInputFlags[0];
                 if (flags.menu) {
-                    const menuState = new MenuState(this.scene, this.camera, this.renderer, this.audioSystem);
+                    const menuState = new MenuState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer as HTMLDivElement);
                     menuState.setGameStateManager(this.gameStateManager);
                     this.gameStateManager.setState(menuState);
                 }

@@ -32,7 +32,7 @@ export class PortalState implements GameState {
     private cityscape: THREE.Group;
     private flyingPlanes: GLBModel[] = [];
     private musicSystem: MusicSystem;
-    private titleContainer: HTMLDivElement;
+    private titleContainer: HTMLElement;
     private playerInputFlags: { [key: number]: {
         left: boolean;
         right: boolean; 
@@ -52,7 +52,8 @@ export class PortalState implements GameState {
         private scene: THREE.Scene,
         private camera: THREE.PerspectiveCamera,
         private renderer: THREE.WebGLRenderer,
-        private audioSystem: AudioSystem
+        private audioSystem: AudioSystem,
+        private uiContainer: HTMLDivElement
     ) {
         this.audioSystem = audioSystem;
         this.musicSystem = new MusicSystem(this.audioSystem);
@@ -70,7 +71,7 @@ export class PortalState implements GameState {
             z-index: 1000;
             pointer-events: none;
         `;
-        document.body.appendChild(this.titleContainer);
+        this.uiContainer.appendChild(this.titleContainer);
         
         // Create player
         const planeModel = new GLBModel('assets/bi-plane2.glb');
@@ -589,23 +590,23 @@ export class PortalState implements GameState {
                     100% { transform: rotate(-2deg); }
                 }
                 .title {
-                    font-size: 12vh;
+                    font-size: 129rem;
                     font-weight: bold;
-                    margin-top: 8vh;
-                    margin-bottom:0vh;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                    margin-top: 100rem;
+                    margin-bottom: 0;
+                    text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
                     animation: gentleRotate 3s ease-in-out infinite;
                     display: inline-block;
                 }
                 .instructions {
-                    font-size: 2vh;
+                    font-size: 20rem;
                     color: #000000;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                    text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
                 }
                 .call-to-action {
-                    font-size: 4vh;
+                    font-size: 40rem;
                     color: #ff0000;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                    text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
                 }
             </style>
             <div class="title">Bi-Plane Panic</div>
@@ -666,7 +667,6 @@ export class PortalState implements GameState {
         // Clean up music system
         this.musicSystem.stop();
         this.musicSystem.cleanup();
-
     }
 
     public update(deltaTime: number): void {
@@ -725,7 +725,7 @@ export class PortalState implements GameState {
             window.location.href = 'http://portal.pieter.com';
         } else if (isWithinRunwayBounds) {
             // Transition to PlayState
-            const playState = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem);
+            const playState = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer);
             playState.setGameStateManager(this.gameStateManager);
             this.gameStateManager.setState(playState);
         }

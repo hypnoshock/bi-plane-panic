@@ -60,7 +60,6 @@ uiContainer.style.cssText = `
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #f0f;
 `;
 gameContainer.appendChild(uiContainer);
 
@@ -218,7 +217,7 @@ let frameTimes: number[] = [];
 const frameTimeHistorySize = 60; // Keep track of last 60 frames
 
 // Create game state manager
-const gameStateManager = new GameStateManager(audioSystem);
+const gameStateManager = new GameStateManager(audioSystem, uiContainer);
 
 // Check for query string 'portal'
 const urlParams = new URLSearchParams(window.location.search);
@@ -232,19 +231,19 @@ if (urlParams.get('portal') === 'true') {
 let lastTime = 0;
 
 function startPlayState() {
-    const playState = new PlayState(scene, camera, renderer, audioSystem);
+    const playState = new PlayState(scene, camera, renderer, audioSystem, uiContainer);
     playState.setGameStateManager(gameStateManager);
     gameStateManager.setState(playState);
 }
 
 function startMenuState() {
-    const menuState = new MenuState(scene, camera, renderer, audioSystem);
+    const menuState = new MenuState(scene, camera, renderer, audioSystem, uiContainer);
     menuState.setGameStateManager(gameStateManager);
     gameStateManager.setState(menuState);
 }
 
 function startPortalState() {
-    const portalState = new PortalState(scene, camera, renderer, audioSystem);
+    const portalState = new PortalState(scene, camera, renderer, audioSystem, uiContainer);
     portalState.setGameStateManager(gameStateManager);
     gameStateManager.setState(portalState);
 }
