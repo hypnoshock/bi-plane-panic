@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Container hierarchy and HTML UI elements
+
+`main.ts` module creates a full screen container DIV referenced as `container` and attaches it to body. This container has a height of 100vh and a width of 100vw so it covers the entire screen.
+`main.ts` module then appends a DIV referenced as `gameContainer` to the app's `container` and set's it size and height so it maintains an aspect ratio of 16:9
+The canvas that three.js renders to is a child of `gameContainer` and will have it's height and width set to the pixel height and width of `gameContainer`. This will ensure that it maintains an aspect ratio of 16:9
+The UI layer is also child of `gameContainer` and has it's width and height set to 100% so it also maintains an aspect ratio of 16:9
+The root element has it's font-size set relative to the width of the UI container so that all UI elements and font sizes can be positioned and sized using rems and will scale acordingly. 1rem will equal 1px if the screen is 1920 x 1080 pixel size.
+

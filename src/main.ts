@@ -51,6 +51,19 @@ renderer.domElement.style.cssText = `
 `;
 gameContainer.appendChild(renderer.domElement);
 
+// Create UI container. This layer maintains the 16:9 aspect ratio as it's 100% width and height of the game container
+const uiContainer = document.createElement('div');
+uiContainer.id = 'ui-container';
+uiContainer.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f0f;
+`;
+gameContainer.appendChild(uiContainer);
+
 // Add lights
 const light: THREE.DirectionalLight = new THREE.DirectionalLight(0xffffff, 3);
 light.position.set(1, 1, 1);
@@ -63,36 +76,36 @@ scene.add(ambientLight);
 camera.position.z = 5;
 
 // Create FPS counter
-const SHOW_FPS_COUNTER = false;
+const SHOW_FPS_COUNTER = true;
 const fpsCounter = document.createElement('div');
 fpsCounter.style.cssText = `
     position: absolute;
-    bottom: 20px;
-    right: 20px;
+    bottom: 20rem;
+    left: 20rem;
     color: white;
-    font-size: 16px;
+    font-size: 16rem;
     font-family: Arial, sans-serif;
     z-index: 1000;
     background-color: rgba(0, 0, 0, 0.5);
-    padding: 8px 12px;
-    border-radius: 4px;
+    padding: 8rem 12rem;
+    border-radius: 4rem;
     display: ${SHOW_FPS_COUNTER ? 'block' : 'none'};
 `;
-gameContainer.appendChild(fpsCounter);
+uiContainer.appendChild(fpsCounter);
 
 // Create fullscreen button
 const fullscreenButton = document.createElement('button');
 fullscreenButton.style.cssText = `
     position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
+    top: 20rem;
+    right: 20rem;
+    width: 60rem;
+    height: 60rem;
     background: rgba(0, 0, 0, 0.5);
-    border: 2px solid white;
+    border: 2rem solid white;
     border-radius: 50%;
     color: white;
-    font-size: 24px;
+    font-size: 34rem;
     cursor: pointer;
     z-index: 1000;
     display: flex;
@@ -102,7 +115,7 @@ fullscreenButton.style.cssText = `
     transition: all 0.2s ease;
 `;
 fullscreenButton.innerHTML = '⛶';
-gameContainer.appendChild(fullscreenButton);
+uiContainer.appendChild(fullscreenButton);
 
 // Function to handle fullscreen
 const toggleFullscreen = () => {
@@ -146,7 +159,7 @@ const updateFullscreenIcon = () => {
         (document as any).mozFullScreenElement || 
         (document as any).msFullscreenElement;
     
-    fullscreenButton.innerHTML = isFullscreen ? '⮌' : '⛶';
+    fullscreenButton.innerHTML = isFullscreen ? '↙' : '⛶';
 };
 
 // Add event listeners for fullscreen changes
@@ -162,15 +175,15 @@ fullscreenButton.addEventListener('click', toggleFullscreen);
 const muteButton = document.createElement('button');
 muteButton.style.cssText = `
     position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
+    bottom: 20rem;
+    right: 20rem;
+    width: 60rem;
+    height: 60rem;
     background: rgba(0, 0, 0, 0.5);
-    border: 2px solid white;
+    border: 2rem solid white;
     border-radius: 50%;
     color: white;
-    font-size: 24px;
+    font-size: 34rem;
     cursor: pointer;
     z-index: 1000;
     display: flex;
@@ -180,7 +193,7 @@ muteButton.style.cssText = `
     transition: all 0.2s ease;
 `;
 muteButton.innerHTML = '🔊';
-gameContainer.appendChild(muteButton);
+uiContainer.appendChild(muteButton);
 
 // Function to handle muting
 let isMuted = false;
@@ -273,11 +286,27 @@ function animate(currentTime: number): void {
     gameStateManager.render();
 }
 
+// Add function to update root font size
+function updateRootFontSize() {
+    // Reference resolution is 1920x1080
+    const REFERENCE_WIDTH = 1920;
+    
+    // Scale factor based on current container width compared to reference width
+    const scale = gameContainer.clientWidth / REFERENCE_WIDTH;
+    
+    // Set font size so that 1rem = 1px at 1920x1080
+    document.documentElement.style.fontSize = `${scale}px`;
+}
+
+// Call initially
+updateRootFontSize();
+
 // Handle window resize
 window.addEventListener('resize', () => {
     renderer.setSize(gameContainer.clientWidth, gameContainer.clientHeight);
     camera.aspect = 16/9;
     camera.updateProjectionMatrix();
+    updateRootFontSize();
 });
 
 // Handle window unload
