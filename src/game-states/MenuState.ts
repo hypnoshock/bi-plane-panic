@@ -8,6 +8,7 @@ import { ScreenControlHandler } from '../systems/input-handlers/ScreenControlHan
 import { JoypadInputHandler } from '../systems/input-handlers/JoypadInputHandler';
 import { MusicSystem } from '../systems/MusicSystem';
 import { MenuPlane } from '../game-objects/MenuPlane';
+import { GameSettings } from '../systems/GameSettings';
 
 export class MenuState implements GameState {
     private scene: THREE.Scene;
@@ -17,7 +18,7 @@ export class MenuState implements GameState {
     private menuContainer: HTMLElement = document.createElement('div');
     private uiContainer: HTMLElement;
     private selectedOption: number = 0;
-    private options: string[] = ['Start Game', 'Toggle Fullscreen'];
+    private options: string[] = ['1 Player', '2 Player', 'Toggle Fullscreen'];
     private keyboardHandler!: KeyboardHandler;
     private screenControlHandler!: ScreenControlHandler;
     private joypadHandler!: JoypadInputHandler;
@@ -164,12 +165,19 @@ export class MenuState implements GameState {
 
     private handleSelection(): void {
         switch (this.selectedOption) {
-            case 0: // Start Game
-                const playState = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer);
-                playState.setGameStateManager(this.gameStateManager);
-                this.gameStateManager.setState(playState);
+            case 0: // 1 Player
+                GameSettings.getInstance().isTwoPlayer = false;
+                const playState1 = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer);
+                playState1.setGameStateManager(this.gameStateManager);
+                this.gameStateManager.setState(playState1);
                 break;
-            case 1: // Toggle Fullscreen
+            case 1: // 2 Player
+                GameSettings.getInstance().isTwoPlayer = true;
+                const playState2 = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer);
+                playState2.setGameStateManager(this.gameStateManager);
+                this.gameStateManager.setState(playState2);
+                break;
+            case 2: // Toggle Fullscreen
                 this.toggleFullscreen();
                 break;
         }

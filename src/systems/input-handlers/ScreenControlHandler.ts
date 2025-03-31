@@ -38,10 +38,11 @@ export class ScreenControlHandler {
     private createControls(): void {
         // Create main container
         this.container.style.cssText = `
-            position: fixed;
+            position: absolute;
             bottom: 20px;
             left: 0;
             right: 0;
+            width: 100%;
             display: flex;
             justify-content: space-between;
             padding: 0 20px;
@@ -257,5 +258,9 @@ export class ScreenControlHandler {
         if (this.container && this.container.parentNode) {
             this.container.parentNode.removeChild(this.container);
         }
+    }
+
+    public getContainer(): HTMLDivElement {
+        return this.container;
     }
 } 

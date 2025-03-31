@@ -18,10 +18,12 @@ import { BoundarySphere } from '../game-objects/BoundarySphere';
 import { StarfieldSystem } from '../systems/StarfieldSystem';
 import { DebrisSystem } from '../systems/DebrisSystem';
 import { PortalState } from './PortalState';
+import { GameSettings } from '../systems/GameSettings';
 
 export class PlayState implements GameState {
     private keyboardHandler!: KeyboardHandler;
     private screenControlHandler!: ScreenControlHandler;
+    private screenControlHandler2!: ScreenControlHandler;
     private joypadHandler!: JoypadInputHandler;
     private cpuHandlers: CPUInputHandler[] = [];
     private gameStateManager!: GameStateManager;
@@ -202,7 +204,7 @@ export class PlayState implements GameState {
         // Define player configurations
         const playerConfigs = [
             { color: 0xff0000, isCPU: false }, // Blue player 1 (human)
-            { color: 0x4169e1, isCPU: true },  // Red player 2 (CPU)
+            { color: 0x4169e1, isCPU: !GameSettings.getInstance().isTwoPlayer },  // Red player 2 (CPU)
             { color: 0x800080, isCPU: true },   // Purple player 3 (CPU)
             // { color: 0x008000, isCPU: true },   // Green player 4 (CPU)
             // { color: 0xffff00, isCPU: true }   // Yellow player 5 (CPU)
@@ -258,6 +260,25 @@ export class PlayState implements GameState {
 
         // Position camera
         this.camera.position.z = 10;
+
+        if (GameSettings.getInstance().isTwoPlayer) {
+            this.screenControlHandler2 = new ScreenControlHandler(()=>{});
+            // Position second player controls at the top of the screen
+            const container2 = this.screenControlHandler2.getContainer();
+            container2.style.cssText = `
+                position: absolute;
+                top: 20px;
+                left: 0;
+                right: 0;
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                padding: 0 20px;
+                pointer-events: none;
+                z-index: 1000;
+                transform: rotate(180deg);
+            `;
+        }
     }
 
     private setupBackground(): void {
@@ -286,7 +307,7 @@ export class PlayState implements GameState {
         this.keyboardHandler = keyboardHandler;
         this.screenControlHandler = screenControlHandler;
         this.joypadHandler = joypadHandler;
-
+    
         const inputHandler = (event: string, isPress: boolean) => {
             this.handleInput(event, isPress);
         };
@@ -303,6 +324,9 @@ export class PlayState implements GameState {
                 this.joypadHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
                 this.keyboardHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
                 this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
+                if (GameSettings.getInstance().isTwoPlayer) {
+                    this.screenControlHandler2.setEventHandler((event, isPress) => inputHandler(`player2_${event}`, isPress));
+                }
             }
         });
 
@@ -493,6 +517,10 @@ export class PlayState implements GameState {
         if (this.menuReturnText) {
             this.menuReturnText.remove();
             this.menuReturnText = null;
+        }
+
+        if (this.screenControlHandler2) {
+            this.screenControlHandler2.destroy();
         }
     }
 
