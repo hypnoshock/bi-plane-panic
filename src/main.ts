@@ -5,6 +5,7 @@ import { MenuState } from './game-states/MenuState';
 import { PlayState } from './game-states/PlayState';
 import { AudioSystem } from './systems/AudioSystem';
 import { PortalState } from './game-states/PortalState';
+import { GameSettings } from './systems/GameSettings';
 
 function isMobileDevice(): boolean {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -40,6 +41,7 @@ gameContainer.style.cssText = `
     height: min(100dvh, 100dvw * 9/16);
     background-color: #000;
 `;
+gameContainer.id = 'game-container';
 container.appendChild(gameContainer);
 
 // Create camera with 16:9 aspect ratio
@@ -79,7 +81,7 @@ scene.add(ambientLight);
 camera.position.z = 5;
 
 // Create FPS counter
-const SHOW_FPS_COUNTER = true;
+const SHOW_FPS_COUNTER = false;
 const fpsCounter = document.createElement('div');
 fpsCounter.style.cssText = `
     position: absolute;
@@ -305,16 +307,22 @@ updateRootFontSize();
 
 // Handle window resize
 window.addEventListener('resize', () => {
-    renderer.setSize(gameContainer.clientWidth, gameContainer.clientHeight);
-    camera.aspect = 16/9;
-    camera.updateProjectionMatrix();
-    updateRootFontSize();
+    updateRendererSize();
 });
 
 // Handle window unload
 window.addEventListener('unload', () => {
     gameStateManager.cleanup();
 });
+
+function updateRendererSize() {
+    renderer.setSize(gameContainer.clientWidth, gameContainer.clientHeight);
+    camera.aspect = 16/9;
+    camera.updateProjectionMatrix();
+    updateRootFontSize();
+}
+
+GameSettings.getInstance().updateRendererSizeCallback = updateRendererSize;
 
 // Start animation
 animate(0);

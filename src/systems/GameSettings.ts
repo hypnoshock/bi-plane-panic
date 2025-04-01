@@ -1,6 +1,7 @@
 export class GameSettings {
     private static instance: GameSettings;
     private _isTwoPlayer: boolean = false;
+    private _updateRendererSizeCallback: () => void = () => {};
 
     private constructor() {}
 
@@ -17,5 +18,13 @@ export class GameSettings {
 
     public set isTwoPlayer(value: boolean) {
         this._isTwoPlayer = value;
+    }
+
+    public set updateRendererSizeCallback(callback: () => void) {
+        this._updateRendererSizeCallback = callback;
+    }
+
+    public get updateRendererSizeCallback(): () => void {
+        return this._updateRendererSizeCallback;
     }
 } 
