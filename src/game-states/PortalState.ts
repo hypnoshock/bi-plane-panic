@@ -600,13 +600,19 @@ export class PortalState implements GameState {
                 .title {
                     font-size: 129rem;
                     font-weight: bold;
-                    margin-top: 100rem;
+                    margin-top: 180rem;
                     margin-bottom: 0;
                     text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
                     animation: gentleRotate 3s ease-in-out infinite;
                     display: inline-block;
                 }
-                .instructions {
+                .controls-container {
+                    display: flex;
+                    justify-content: center;
+                    gap: 40rem;
+                    margin: 0rem 0rem 20rem 0rem;
+                }
+                .player-controls {
                     font-size: 30rem;
                     color: #000000;
                     text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
@@ -618,7 +624,20 @@ export class PortalState implements GameState {
                 }
             </style>
             <div class="title">Bi-Plane Panic</div>
-            <div class="instructions">${this.isMobileDevice() ? 'Use touch controls to move' : 'WASD to move'}.</br>${this.isMobileDevice() ? 'Button A' : 'Space'} = Shoot</div>
+            <div class="controls-container">
+                <div class="player-controls">
+                    Player 1:<br/>
+                    ${this.isMobileDevice() ? 'Use touch controls to move' : 'WASD to move'}<br/>
+                    ${this.isMobileDevice() ? 'Button A' : 'Space'} = Shoot
+                </div>
+                ${!this.isMobileDevice() && GameSettings.getInstance().isTwoPlayer ? `
+                    <div class="player-controls">
+                        Player 2:<br/>
+                        IJKL to move<br/>
+                        P = Shoot
+                    </div>
+                ` : ''}
+            </div>
             <div class="call-to-action">Move your red plane to the runway to start</div>
         `;
     }
@@ -646,6 +665,58 @@ export class PortalState implements GameState {
             this.twoPlayerButton!.style.backgroundColor = GameSettings.getInstance().isTwoPlayer ? '#ff4444' : '#4CAF50';
             this.twoPlayerButton!.textContent = GameSettings.getInstance().isTwoPlayer ? '2 Player Mode Selected' : '1 Player Mode Selected';
             this.updatePortraitWarning();
+            
+            // Update the title container content
+            this.titleContainer.innerHTML = `
+                <style>
+                    @keyframes gentleRotate {
+                        0% { transform: rotate(-2deg); }
+                        50% { transform: rotate(2deg); }
+                        100% { transform: rotate(-2deg); }
+                    }
+                    .title {
+                        font-size: 129rem;
+                        font-weight: bold;
+                        margin-top: 180rem;
+                        margin-bottom: 0;
+                        text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
+                        animation: gentleRotate 3s ease-in-out infinite;
+                        display: inline-block;
+                    }
+                    .controls-container {
+                        display: flex;
+                        justify-content: center;
+                        gap: 40rem;
+                        margin: 0rem 0rem 20rem 0rem;
+                    }
+                    .player-controls {
+                        font-size: 30rem;
+                        color: #000000;
+                        text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
+                    }
+                    .call-to-action {
+                        font-size: 40rem;
+                        color: #ff0000;
+                        text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
+                    }
+                </style>
+                <div class="title">Bi-Plane Panic</div>
+                <div class="controls-container">
+                    <div class="player-controls">
+                        Player 1:<br/>
+                        ${this.isMobileDevice() ? 'Use touch controls to move' : 'WASD to move'}<br/>
+                        ${this.isMobileDevice() ? 'Button A' : 'Space'} = Shoot
+                    </div>
+                    ${!this.isMobileDevice() && GameSettings.getInstance().isTwoPlayer ? `
+                        <div class="player-controls">
+                            Player 2:<br/>
+                            IJKL to move<br/>
+                            P = Shoot
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="call-to-action">Move your red plane to the runway to start</div>
+            `;
         });
         this.twoPlayerButton.addEventListener('mouseover', () => {
             this.twoPlayerButton!.style.transform = 'scale(1.05)';
