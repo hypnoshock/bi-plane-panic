@@ -8,6 +8,9 @@ export class ScreenControlHandler {
     private button2: HTMLDivElement = document.createElement('div');
     private isActive: boolean = false;
     private activeDirections: Set<string> = new Set();
+    private directionPadTouchId: number | null = null;
+    private button1TouchId: number | null = null;
+    private button2TouchId: number | null = null;
 
     constructor(eventHandler: ScreenControlEventHandler) {
         this.eventHandler = eventHandler;
@@ -58,6 +61,7 @@ export class ScreenControlHandler {
             border-radius: 50%;
             position: relative;
             pointer-events: auto;
+            touch-action: none;
         `;
 
         // Create buttons container
@@ -67,6 +71,7 @@ export class ScreenControlHandler {
             display: flex;
             gap: 20px;
             pointer-events: auto;
+            touch-action: none;
         `;
 
         // Create button 1
@@ -81,6 +86,7 @@ export class ScreenControlHandler {
             font-size: 24px;
             color: white;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            touch-action: none;
         `;
         this.button1.textContent = 'A';
 
@@ -96,6 +102,7 @@ export class ScreenControlHandler {
             font-size: 24px;
             color: white;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            touch-action: none;
         `;
         this.button2.textContent = 'B';
 
@@ -110,50 +117,94 @@ export class ScreenControlHandler {
     private setupEventListeners(): void {
         // Direction pad events
         this.directionPad.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.isActive = true;
-            this.handleDirectionPadTouch(e);
+            // Process all touches in the event
+            Array.from(e.touches).forEach(touch => {
+                const rect = this.directionPad.getBoundingClientRect();
+                if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                    touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                    e.preventDefault();
+                    this.isActive = true;
+                    this.directionPadTouchId = touch.identifier;
+                    this.handleDirectionPadTouch(e);
+                }
+            });
         });
 
         this.directionPad.addEventListener('touchmove', (e) => {
-            if (!this.isActive) return;
+            if (!this.isActive || this.directionPadTouchId === null) return;
+            
+            // Find our active touch
+            const touch = Array.from(e.touches).find(t => t.identifier === this.directionPadTouchId);
+            if (!touch) return;
+            
             e.preventDefault();
             this.handleDirectionPadTouch(e);
         });
 
-        this.directionPad.addEventListener('touchend', () => {
-            this.isActive = false;
-            this.eventHandler('up', false);
-            this.eventHandler('down', false);
-            this.eventHandler('left', false);
-            this.eventHandler('right', false);
+        this.directionPad.addEventListener('touchend', (e) => {
+            // Only handle this touch if it's our active direction pad touch
+            if (e.changedTouches[0].identifier === this.directionPadTouchId) {
+                this.isActive = false;
+                this.directionPadTouchId = null;
+                this.eventHandler('up', false);
+                this.eventHandler('down', false);
+                this.eventHandler('left', false);
+                this.eventHandler('right', false);
+            }
         });
 
         // Button 1 events
         this.button1.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.eventHandler('button1', true);
+            // Process all touches in the event
+            Array.from(e.touches).forEach(touch => {
+                const rect = this.button1.getBoundingClientRect();
+                if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                    touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                    e.preventDefault();
+                    this.button1TouchId = touch.identifier;
+                    this.eventHandler('button1', true);
+                }
+            });
         });
 
         this.button1.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.eventHandler('button1', false);
+            // Only handle this touch if it's our active button 1 touch
+            if (e.changedTouches[0].identifier === this.button1TouchId) {
+                e.preventDefault();
+                this.button1TouchId = null;
+                this.eventHandler('button1', false);
+            }
         });
 
         // Button 2 events
         this.button2.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.eventHandler('button2', true);
+            // Process all touches in the event
+            Array.from(e.touches).forEach(touch => {
+                const rect = this.button2.getBoundingClientRect();
+                if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                    touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                    e.preventDefault();
+                    this.button2TouchId = touch.identifier;
+                    this.eventHandler('button2', true);
+                }
+            });
         });
 
         this.button2.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.eventHandler('button2', false);
+            // Only handle this touch if it's our active button 2 touch
+            if (e.changedTouches[0].identifier === this.button2TouchId) {
+                e.preventDefault();
+                this.button2TouchId = null;
+                this.eventHandler('button2', false);
+            }
         });
     }
 
     private handleDirectionPadTouch(e: TouchEvent): void {
-        const touch = e.touches[0];
+        // Find our active touch
+        const touch = Array.from(e.touches).find(t => t.identifier === this.directionPadTouchId);
+        if (!touch) return;
+
         const rect = this.directionPad.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;

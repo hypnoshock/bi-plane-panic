@@ -509,8 +509,14 @@ export class PlayState implements GameState {
         // Show controls only on mobile devices
         if (this.isMobileDevice()) {
             this.screenControlHandler.showControls();
+            if (GameSettings.getInstance().isTwoPlayer) {
+                this.screenControlHandler2.showControls();
+            }
         } else {
             this.screenControlHandler.hideControls();
+            if (GameSettings.getInstance().isTwoPlayer) {
+                this.screenControlHandler2.hideControls();
+            }
         }
     }
 
