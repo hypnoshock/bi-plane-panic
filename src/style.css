@@ -129,5 +129,11 @@ button:focus-visible {
 }
 
 .two-player-rotation {
-    transform: rotate(90deg) scale(1.4);
+  transform: rotate(90deg) scale(calc(9/16));
+}
+
+@media (orientation: portrait) {
+  .two-player-rotation {
+      transform: rotate(90deg) scale(1.4);
+  }
 }
