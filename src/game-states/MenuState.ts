@@ -121,7 +121,7 @@ export class MenuState implements GameState {
             text-align: center;
             color: white;
             font-family: Arial, sans-serif;
-            font-size: 65rem;
+            font-size: 90rem;
             z-index: 1000;
             touch-action: none;
         `;

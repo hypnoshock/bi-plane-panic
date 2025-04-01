@@ -388,10 +388,20 @@ export class PlayState implements GameState {
                     this.playerInputFlags[1].moveDown = isPress;
                     break;
                 case 'left':
-                    this.playerInputFlags[1].moveLeft = isPress;
+                    // Reverse left and right for 2-player mode
+                    if (GameSettings.getInstance().isTwoPlayer) {
+                        this.playerInputFlags[1].moveRight = isPress;
+                    } else {
+                        this.playerInputFlags[1].moveLeft = isPress;
+                    }
                     break;
                 case 'right':
-                    this.playerInputFlags[1].moveRight = isPress;
+                    // Reverse left and right for 2-player mode
+                    if (GameSettings.getInstance().isTwoPlayer) {
+                        this.playerInputFlags[1].moveLeft = isPress;
+                    } else {
+                        this.playerInputFlags[1].moveRight = isPress;
+                    }
                     break;
                 case 'button1':
                     this.playerInputFlags[1].shoot = isPress;
@@ -427,6 +437,14 @@ export class PlayState implements GameState {
 
     public async enter(): Promise<void> {
         this.setupBackground();
+
+        // Add rotation class for 2-player mode
+        if (GameSettings.getInstance().isTwoPlayer) {
+            const gameContainer = document.getElementById('game-container');
+            if (gameContainer) {
+                gameContainer.classList.add('two-player-rotation');
+            }
+        }
 
         // Start countdown
         this.countdownState = 'countdown';
@@ -466,6 +484,14 @@ export class PlayState implements GameState {
     }
 
     public exit(): void {
+        // Remove rotation class for 2-player mode
+        if (GameSettings.getInstance().isTwoPlayer) {
+            const gameContainer = document.getElementById('game-container');
+            if (gameContainer) {
+                gameContainer.classList.remove('two-player-rotation');
+            }
+        }
+
         // Stop music
         this.musicSystem.stop();
         this.musicSystem.cleanup();

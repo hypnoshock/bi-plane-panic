@@ -127,3 +127,7 @@ button:focus-visible {
 .game-over.visible {
     display: block;
 }
+
+.two-player-rotation {
+    transform: rotate(90deg) scale(1.4);
+}
