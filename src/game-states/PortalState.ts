@@ -13,6 +13,7 @@ import { MusicSystem } from '../systems/MusicSystem';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
+import { GameSettings } from '../systems/GameSettings';
 
 export class PortalState implements GameState {
     private keyboardHandler!: KeyboardHandler;
@@ -33,6 +34,8 @@ export class PortalState implements GameState {
     private flyingPlanes: GLBModel[] = [];
     private musicSystem: MusicSystem;
     private titleContainer: HTMLElement;
+    private twoPlayerButton: HTMLElement | null = null;
+    private portraitWarning: HTMLElement | null = null;
     private playerInputFlags: { [key: number]: {
         left: boolean;
         right: boolean; 
@@ -575,6 +578,7 @@ export class PortalState implements GameState {
         // Show controls only on mobile devices
         if (this.isMobileDevice()) {
             this.screenControlHandler.showControls();
+            this.createTwoPlayerButton();
         } else {
             this.screenControlHandler.hideControls();
         }
@@ -611,8 +615,69 @@ export class PortalState implements GameState {
             </style>
             <div class="title">Bi-Plane Panic</div>
             <div class="instructions">${this.isMobileDevice() ? 'Use touch controls to move' : 'WASD to move'}.</br>${this.isMobileDevice() ? 'Button A' : 'Space'} = Shoot</div>
-            <div class="call-to-action">Move your red plane to the right to play</div>
+            <div class="call-to-action">Move your red plane to the runway to start</div>
         `;
+    }
+
+    private createTwoPlayerButton(): void {
+        this.twoPlayerButton = document.createElement('div');
+        this.twoPlayerButton.style.cssText = `
+            position: absolute;
+            top: 20rem;
+            left: 20rem;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15rem 30rem;
+            border-radius: 10rem;
+            font-size: 24rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4rem 8rem rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        `;
+        this.twoPlayerButton.textContent = GameSettings.getInstance().isTwoPlayer ? '2 Player Mode Selected' : '1 Player Mode Selected';
+        this.twoPlayerButton.addEventListener('click', () => {
+            GameSettings.getInstance().isTwoPlayer = !GameSettings.getInstance().isTwoPlayer;
+            this.twoPlayerButton!.style.backgroundColor = GameSettings.getInstance().isTwoPlayer ? '#ff4444' : '#4CAF50';
+            this.twoPlayerButton!.textContent = GameSettings.getInstance().isTwoPlayer ? '2 Player Mode Selected' : '1 Player Mode Selected';
+            this.updatePortraitWarning();
+        });
+        this.twoPlayerButton.addEventListener('mouseover', () => {
+            this.twoPlayerButton!.style.transform = 'scale(1.05)';
+        });
+        this.twoPlayerButton.addEventListener('mouseout', () => {
+            this.twoPlayerButton!.style.transform = 'scale(1)';
+        });
+        this.uiContainer.appendChild(this.twoPlayerButton);
+
+        // Create portrait warning text
+        this.portraitWarning = document.createElement('div');
+        this.portraitWarning.style.cssText = `
+            position: absolute;
+            top: 90rem;
+            left: 20rem;
+            color: #ff4444;
+            font-size: 40rem;
+            font-weight: bold;
+            text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+        `;
+        this.portraitWarning.innerHTML = 'Please rotate device</br>to portrait mode';
+        this.uiContainer.appendChild(this.portraitWarning);
+
+        // Add orientation change listener
+        window.addEventListener('orientationchange', () => this.updatePortraitWarning());
+        window.addEventListener('resize', () => this.updatePortraitWarning());
+    }
+
+    private updatePortraitWarning(): void {
+        if (this.portraitWarning) {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            this.portraitWarning.style.display = 
+                (GameSettings.getInstance().isTwoPlayer && isLandscape) ? 'block' : 'none';
+        }
     }
 
     private isMobileDevice(): boolean {
@@ -653,6 +718,18 @@ export class PortalState implements GameState {
 
         // Remove title container
         this.titleContainer.remove();
+
+        // Remove two player button if it exists
+        if (this.twoPlayerButton) {
+            this.twoPlayerButton.remove();
+            this.twoPlayerButton = null;
+        }
+
+        // Remove portrait warning if it exists
+        if (this.portraitWarning) {
+            this.portraitWarning.remove();
+            this.portraitWarning = null;
+        }
 
         // Clean up portal starfield
         this.portalStarfields.left.cleanup();

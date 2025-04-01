@@ -171,11 +171,15 @@ export class MenuState implements GameState {
                 playState1.setGameStateManager(this.gameStateManager);
                 this.gameStateManager.setState(playState1);
                 break;
-            case 1: // 2 Player
-                GameSettings.getInstance().isTwoPlayer = true;
-                const playState2 = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer);
-                playState2.setGameStateManager(this.gameStateManager);
-                this.gameStateManager.setState(playState2);
+            case 1: // 2 Player if mobile
+                if (this.isMobileDevice()) {
+                    GameSettings.getInstance().isTwoPlayer = true;
+                    const playState2 = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer);
+                    playState2.setGameStateManager(this.gameStateManager);
+                    this.gameStateManager.setState(playState2);
+                } else {
+                    this.toggleFullscreen();
+                }
                 break;
             case 2: // Toggle Fullscreen
                 this.toggleFullscreen();
