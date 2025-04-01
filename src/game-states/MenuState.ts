@@ -279,6 +279,17 @@ export class MenuState implements GameState {
                 .menu-item:hover {
                     color: #ff6666;
                 }
+                .keyboard-instructions {
+                    position: fixed;
+                    bottom: -20rem;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: 24rem;
+                    color: #ffffff;
+                    text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
+                    text-align: center;
+                    white-space: nowrap;
+                }
             </style>
             <div class="title">Bi-Plane Panic</div>
             ${this.options.map((option, index) => 
@@ -290,6 +301,11 @@ export class MenuState implements GameState {
                     ${option}
                 </div>`
             ).join('')}
+            ${!this.isMobileDevice() ? `
+                <div class="keyboard-instructions">
+                    Player 1: WASD to move, Space to shoot | Player 2: IJKL to move, P to shoot
+                </div>
+            ` : ''}
         `;
 
         const handleMenuSelect = (event: CustomEvent) => {
