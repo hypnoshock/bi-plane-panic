@@ -551,8 +551,8 @@ export class PortalState implements GameState {
         };
 
         this.joypadHandler.setEventHandler((event, isPress) => inputHandler(event, isPress));
-        this.keyboardHandler1.setEventHandler((event, isPress) => inputHandler(event, isPress));
-        this.keyboardHandler2.setEventHandler((event, isPress) => inputHandler(event, isPress));
+        this.keyboardHandler1.setEventHandler((event, isPress) => inputHandler('player1_' + event, isPress));
+        this.keyboardHandler2.setEventHandler((event, isPress) => inputHandler('player2_' + event, isPress));
         this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(event, isPress));
     }
 
@@ -578,10 +578,11 @@ export class PortalState implements GameState {
 
     public async enter(): Promise<void> {
         this.setupBackground();
-        // Show controls only on mobile devices
+        this.createTwoPlayerButton();
+
+        // Show touch controls only on mobile devices
         if (this.isMobileDevice()) {
             this.screenControlHandler.showControls();
-            this.createTwoPlayerButton();
         } else {
             this.screenControlHandler.hideControls();
         }
@@ -679,7 +680,7 @@ export class PortalState implements GameState {
         if (this.portraitWarning) {
             const isLandscape = window.innerWidth > window.innerHeight;
             this.portraitWarning.style.display = 
-                (GameSettings.getInstance().isTwoPlayer && isLandscape) ? 'block' : 'none';
+                (GameSettings.getInstance().isTwoPlayer && isLandscape && this.isMobileDevice()) ? 'block' : 'none';
         }
     }
 
