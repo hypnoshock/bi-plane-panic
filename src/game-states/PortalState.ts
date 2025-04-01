@@ -16,7 +16,8 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { GameSettings } from '../systems/GameSettings';
 
 export class PortalState implements GameState {
-    private keyboardHandler!: KeyboardHandler;
+    private keyboardHandler1!: KeyboardHandler;
+    private keyboardHandler2!: KeyboardHandler;
     private screenControlHandler!: ScreenControlHandler;
     private joypadHandler!: JoypadInputHandler;
     private gameStateManager!: GameStateManager;
@@ -535,11 +536,13 @@ export class PortalState implements GameState {
     }
 
     public setInputHandlers(
-        keyboardHandler: KeyboardHandler,
+        keyboardHandler1: KeyboardHandler,
+        keyboardHandler2: KeyboardHandler,
         screenControlHandler: ScreenControlHandler,
         joypadHandler: JoypadInputHandler
     ): void {
-        this.keyboardHandler = keyboardHandler;
+        this.keyboardHandler1 = keyboardHandler1;
+        this.keyboardHandler2 = keyboardHandler2;
         this.screenControlHandler = screenControlHandler;
         this.joypadHandler = joypadHandler;
 
@@ -547,10 +550,10 @@ export class PortalState implements GameState {
             this.handleInput(event, isPress);
         };
 
-        // Set up controls for player
-        this.joypadHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
-        this.keyboardHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
-        this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
+        this.joypadHandler.setEventHandler((event, isPress) => inputHandler(event, isPress));
+        this.keyboardHandler1.setEventHandler((event, isPress) => inputHandler(event, isPress));
+        this.keyboardHandler2.setEventHandler((event, isPress) => inputHandler(event, isPress));
+        this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(event, isPress));
     }
 
     private handleInput(event: string, isPress: boolean): void {
@@ -815,7 +818,8 @@ export class PortalState implements GameState {
 
         // Update input handlers
         this.joypadHandler.update();
-        this.keyboardHandler.update();
+        this.keyboardHandler1.update();
+        this.keyboardHandler2.update();
         this.screenControlHandler.update();
     }
 

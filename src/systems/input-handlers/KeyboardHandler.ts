@@ -1,13 +1,24 @@
 type KeyboardEventHandler = (event: string, isPress: boolean) => void;
 
+interface KeyMapping {
+    up: string[];
+    down: string[];
+    left: string[];
+    right: string[];
+    button1: string[];
+    button2: string[];
+}
+
 export class KeyboardHandler {
     private keys: Set<string> = new Set();
     private eventHandler: KeyboardEventHandler;
     private keydownListener: (event: KeyboardEvent) => void;
     private keyupListener: (event: KeyboardEvent) => void;
+    private keyMapping: KeyMapping;
 
-    constructor(eventHandler: KeyboardEventHandler) {
+    constructor(eventHandler: KeyboardEventHandler, keyMapping: KeyMapping) {
         this.eventHandler = eventHandler;
+        this.keyMapping = keyMapping;
         this.keydownListener = this.handleKeydown.bind(this);
         this.keyupListener = this.handleKeyup.bind(this);
         this.setupEventListeners();
@@ -24,8 +35,9 @@ export class KeyboardHandler {
 
     private handleKeydown(event: KeyboardEvent): void {
         const key = event.key.toLowerCase();
-        // Only handle game control keys
-        if (['w', 'a', 's', 'd', ' ', 'enter', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+        // Check if the key is in any of our mappings
+        const isMappedKey = Object.values(this.keyMapping).some(keys => keys.includes(key));
+        if (isMappedKey) {
             event.preventDefault();
             event.stopPropagation();
             if (!this.keys.has(key)) {
@@ -37,8 +49,9 @@ export class KeyboardHandler {
 
     private handleKeyup(event: KeyboardEvent): void {
         const key = event.key.toLowerCase();
-        // Only handle game control keys
-        if (['w', 'a', 's', 'd', ' ', 'enter', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+        // Check if the key is in any of our mappings
+        const isMappedKey = Object.values(this.keyMapping).some(keys => keys.includes(key));
+        if (isMappedKey) {
             event.preventDefault();
             event.stopPropagation();
             if (this.keys.has(key)) {
@@ -49,29 +62,12 @@ export class KeyboardHandler {
     }
 
     private handleKeyEvent(key: string, isPress: boolean): void {
-        switch (key) {
-            case 'w':
-            case 'arrowup':
-                this.eventHandler('up', isPress);
+        // Check each mapping to find which action this key corresponds to
+        for (const [action, keys] of Object.entries(this.keyMapping)) {
+            if (keys.includes(key)) {
+                this.eventHandler(action, isPress);
                 break;
-            case 's':
-            case 'arrowdown':
-                this.eventHandler('down', isPress);
-                break;
-            case 'a':
-            case 'arrowleft':
-                this.eventHandler('left', isPress);
-                break;
-            case 'd':
-            case 'arrowright':
-                this.eventHandler('right', isPress);
-                break;
-            case ' ':
-                this.eventHandler('button1', isPress);
-                break;
-            case 'enter':
-                this.eventHandler('button2', isPress);
-                break;
+            }
         }
     }
 

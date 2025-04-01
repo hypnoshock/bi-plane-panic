@@ -8,7 +8,8 @@ export interface GameState {
     update(deltaTime: number): void;
     render(): void;
     setInputHandlers(
-        keyboardHandler: KeyboardHandler,
+        keyboardHandler1: KeyboardHandler,
+        keyboardHandler2: KeyboardHandler,
         screenControlHandler: ScreenControlHandler,
         joypadHandler: JoypadInputHandler
     ): void;

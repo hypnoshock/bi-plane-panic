@@ -18,8 +18,9 @@ export class MenuState implements GameState {
     private menuContainer: HTMLElement = document.createElement('div');
     private uiContainer: HTMLElement;
     private selectedOption: number = 0;
-    private options: string[] = this.isMobileDevice() ? ['1 Player', '2 Player', 'Toggle Fullscreen'] : ['Start Game', 'Toggle Fullscreen'] ;
-    private keyboardHandler!: KeyboardHandler;
+    private options: string[] = ['1 Player', '2 Player', 'Toggle Fullscreen'];
+    private keyboardHandler1!: KeyboardHandler;
+    private keyboardHandler2!: KeyboardHandler;
     private screenControlHandler!: ScreenControlHandler;
     private joypadHandler!: JoypadInputHandler;
     private backgroundTexture: THREE.CanvasTexture | null = null;
@@ -147,17 +148,20 @@ export class MenuState implements GameState {
             this.updateMenuDisplay();
         }
 
-        this.keyboardHandler.setEventHandler(inputHandler);
+        this.keyboardHandler1.setEventHandler(inputHandler);
+        this.keyboardHandler2.setEventHandler(inputHandler);
         this.screenControlHandler.setEventHandler(inputHandler);
         this.joypadHandler.setEventHandler(inputHandler);
     }
 
     public setInputHandlers(
-        keyboardHandler: KeyboardHandler,
+        keyboardHandler1: KeyboardHandler,
+        keyboardHandler2: KeyboardHandler,
         screenControlHandler: ScreenControlHandler,
         joypadHandler: JoypadInputHandler
     ): void {
-        this.keyboardHandler = keyboardHandler;
+        this.keyboardHandler1 = keyboardHandler1;
+        this.keyboardHandler2 = keyboardHandler2;
         this.screenControlHandler = screenControlHandler;
         this.joypadHandler = joypadHandler;
         this.setupInputHandlers();
@@ -171,15 +175,11 @@ export class MenuState implements GameState {
                 playState1.setGameStateManager(this.gameStateManager);
                 this.gameStateManager.setState(playState1);
                 break;
-            case 1: // 2 Player if mobile
-                if (this.isMobileDevice()) {
-                    GameSettings.getInstance().isTwoPlayer = true;
-                    const playState2 = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer);
-                    playState2.setGameStateManager(this.gameStateManager);
-                    this.gameStateManager.setState(playState2);
-                } else {
-                    this.toggleFullscreen();
-                }
+            case 1: // 2 Player
+                GameSettings.getInstance().isTwoPlayer = true;
+                const playState2 = new PlayState(this.scene, this.camera, this.renderer, this.audioSystem, this.uiContainer);
+                playState2.setGameStateManager(this.gameStateManager);
+                this.gameStateManager.setState(playState2);
                 break;
             case 2: // Toggle Fullscreen
                 this.toggleFullscreen();
@@ -331,7 +331,8 @@ export class MenuState implements GameState {
 
     update(): void {
         this.musicSystem.update();
-        this.keyboardHandler.update();
+        this.keyboardHandler1.update();
+        this.keyboardHandler2.update();
         this.screenControlHandler.update();
         this.joypadHandler.update();
         this.updateBackground();

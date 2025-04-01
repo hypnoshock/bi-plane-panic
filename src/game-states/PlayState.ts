@@ -21,7 +21,8 @@ import { PortalState } from './PortalState';
 import { GameSettings } from '../systems/GameSettings';
 
 export class PlayState implements GameState {
-    private keyboardHandler!: KeyboardHandler;
+    private keyboardHandler1!: KeyboardHandler;
+    private keyboardHandler2!: KeyboardHandler;
     private screenControlHandler!: ScreenControlHandler;
     private screenControlHandler2!: ScreenControlHandler;
     private joypadHandler!: JoypadInputHandler;
@@ -327,11 +328,13 @@ export class PlayState implements GameState {
     }
 
     public setInputHandlers(
-        keyboardHandler: KeyboardHandler,
+        keyboardHandler1: KeyboardHandler,
+        keyboardHandler2: KeyboardHandler,
         screenControlHandler: ScreenControlHandler,
         joypadHandler: JoypadInputHandler
     ): void {
-        this.keyboardHandler = keyboardHandler;
+        this.keyboardHandler1 = keyboardHandler1;
+        this.keyboardHandler2 = keyboardHandler2;
         this.screenControlHandler = screenControlHandler;
         this.joypadHandler = joypadHandler;
     
@@ -349,14 +352,14 @@ export class PlayState implements GameState {
             } else {
                 // Set up player 1 controls (keyboard and screen)
                 this.joypadHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
-                this.keyboardHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
+                this.keyboardHandler1.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
                 this.screenControlHandler.setEventHandler((event, isPress) => inputHandler(`player1_${event}`, isPress));
                 if (GameSettings.getInstance().isTwoPlayer) {
                     this.screenControlHandler2.setEventHandler((event, isPress) => inputHandler(`player2_${event}`, isPress));
+                    this.keyboardHandler2.setEventHandler((event, isPress) => inputHandler(`player2_${event}`, isPress));
                 }
             }
         });
-
     }
 
     private handleInput(event: string, isPress: boolean): void {
@@ -404,7 +407,7 @@ export class PlayState implements GameState {
                     break;
             }
         }
-        // Player 2 controls (CPU)
+        // Player 2 controls (keyboard/CPU)
         else if (event.startsWith('player2_')) {
             const action = event.replace('player2_', '');
             switch (action) {
@@ -415,16 +418,16 @@ export class PlayState implements GameState {
                     this.playerInputFlags[1].moveDown = isPress;
                     break;
                 case 'left':
-                    // Reverse left and right for 2-player mode
-                    if (GameSettings.getInstance().isTwoPlayer) {
+                    // Reverse left and right for 2-player mode when in mobile 
+                    if (GameSettings.getInstance().isTwoPlayer && this.isMobileDevice()) {
                         this.playerInputFlags[1].moveRight = isPress;
                     } else {
                         this.playerInputFlags[1].moveLeft = isPress;
                     }
                     break;
                 case 'right':
-                    // Reverse left and right for 2-player mode
-                    if (GameSettings.getInstance().isTwoPlayer) {
+                    // Reverse left and right for 2-player mode when in mobile 
+                    if (GameSettings.getInstance().isTwoPlayer && this.isMobileDevice()) {
                         this.playerInputFlags[1].moveLeft = isPress;
                     } else {
                         this.playerInputFlags[1].moveRight = isPress;
@@ -465,8 +468,8 @@ export class PlayState implements GameState {
     public async enter(): Promise<void> {
         this.setupBackground();
 
-        // Add rotation class for 2-player mode
-        if (GameSettings.getInstance().isTwoPlayer) {
+        // Add rotation class for 2-player mode when in mobile
+        if (GameSettings.getInstance().isTwoPlayer && this.isMobileDevice()) {
             const gameContainer = document.getElementById('game-container');
             if (gameContainer) {
                 gameContainer.classList.add('two-player-rotation');
@@ -896,7 +899,8 @@ export class PlayState implements GameState {
         this.checkForWinner();
 
         this.joypadHandler.update();
-        this.keyboardHandler.update();
+        this.keyboardHandler1.update();
+        this.keyboardHandler2.update();
         this.screenControlHandler.update();
         this.cpuHandlers.forEach(handler => handler.update(deltaTime));
     }
