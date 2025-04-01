@@ -53,6 +53,8 @@ export class PlayState implements GameState {
     private countdownText: HTMLElement | null = null;
     private playerIndicator: THREE.Sprite | null = null;
     private playerIndicatorText: THREE.Sprite | null = null;
+    private playerIndicator2: THREE.Sprite | null = null;
+    private playerIndicatorText2: THREE.Sprite | null = null;
     private countdownState: 'countdown' | 'playing' = 'countdown';
     private countdownTime: number = 3;
     private countdownTimer: number = 0;
@@ -110,10 +112,16 @@ export class PlayState implements GameState {
         this.playerIndicator.visible = false;
         this.scene.add(this.playerIndicator);
 
+        // Create second player indicator for two-player mode
+        this.playerIndicator2 = new THREE.Sprite(arrowMaterial);
+        this.playerIndicator2.scale.set(2, 2, 1);
+        this.playerIndicator2.visible = false;
+        this.scene.add(this.playerIndicator2);
+
         // Create player indicator text
         const textCanvas = document.createElement('canvas');
-        textCanvas.width = 128;
-        textCanvas.height = 64;
+        textCanvas.width = 256;
+        textCanvas.height = 128;
         const textCtx = textCanvas.getContext('2d');
         if (textCtx) {
             // Draw yellow text
@@ -121,14 +129,33 @@ export class PlayState implements GameState {
             textCtx.font = 'bold 48px Arial';
             textCtx.textAlign = 'center';
             textCtx.textBaseline = 'middle';
-            textCtx.fillText('You', 64, 32);
+            textCtx.fillText('Player 1', 128, 32);
         }
         const textTexture = new THREE.CanvasTexture(textCanvas);
         const textMaterial = new THREE.SpriteMaterial({ map: textTexture });
         this.playerIndicatorText = new THREE.Sprite(textMaterial);
-        this.playerIndicatorText.scale.set(3, 1.5, 1);
+        this.playerIndicatorText.scale.set(10, 6, 1);
         this.playerIndicatorText.visible = false;
         this.scene.add(this.playerIndicatorText);
+
+        // Create second player indicator text for two-player mode
+        const textCanvas2 = document.createElement('canvas');
+        textCanvas2.width = 256;
+        textCanvas2.height = 128;
+        const textCtx2 = textCanvas2.getContext('2d');
+        if (textCtx2) {
+            textCtx2.fillStyle = '#ffd700';
+            textCtx2.font = 'bold 48px Arial';
+            textCtx2.textAlign = 'center';
+            textCtx2.textBaseline = 'middle';
+            textCtx2.fillText('Player 2', 128, 32);
+        }
+        const textTexture2 = new THREE.CanvasTexture(textCanvas2);
+        const textMaterial2 = new THREE.SpriteMaterial({ map: textTexture2 });
+        this.playerIndicatorText2 = new THREE.Sprite(textMaterial2);
+        this.playerIndicatorText2.scale.set(10, 6, 1);
+        this.playerIndicatorText2.visible = false;
+        this.scene.add(this.playerIndicatorText2);
 
         // Create countdown text element
         this.countdownText = document.createElement('div');
@@ -194,7 +221,7 @@ export class PlayState implements GameState {
             text-shadow: 2rem 2rem 4rem rgba(0, 0, 0, 0.5);
             font-family: Arial, sans-serif;
         `;
-        this.menuReturnText.textContent = 'Press B button to return to menu';
+        this.menuReturnText.textContent = this.isMobileDevice() ? 'Press B button to return to menu' : 'Press enter to return to menu';
         this.uiContainer.appendChild(this.menuReturnText);
 
         // Create boundary sphere
@@ -467,6 +494,14 @@ export class PlayState implements GameState {
         if (this.playerIndicatorText) {
             this.playerIndicatorText.visible = true;
         }
+        if (GameSettings.getInstance().isTwoPlayer) {
+            if (this.playerIndicator2) {
+                this.playerIndicator2.visible = true;
+            }
+            if (this.playerIndicatorText2) {
+                this.playerIndicatorText2.visible = true;
+            }
+        }
         
         // Load game music but don't play it yet
         await this.musicSystem.loadTrack('game-music.json');
@@ -526,6 +561,16 @@ export class PlayState implements GameState {
             this.scene.remove(this.playerIndicatorText);
             this.playerIndicatorText.material.dispose();
             this.playerIndicatorText = null;
+        }
+        if (this.playerIndicator2) {
+            this.scene.remove(this.playerIndicator2);
+            this.playerIndicator2.material.dispose();
+            this.playerIndicator2 = null;
+        }
+        if (this.playerIndicatorText2) {
+            this.scene.remove(this.playerIndicatorText2);
+            this.playerIndicatorText2.material.dispose();
+            this.playerIndicatorText2 = null;
         }
 
         // Clean up
@@ -641,21 +686,38 @@ export class PlayState implements GameState {
         if (this.countdownState === 'countdown') {
             this.countdownTimer += deltaTime;
             
-            // Update player indicator position
+            // Update player indicator positions
             if (this.playerIndicator && this.playerIndicatorText && this.players.length > 0) {
-                const playerPosition = this.players[0].getPosition();
+                const player1Position = this.players[0].getPosition();
                 
-                // Position arrow above player
-                this.playerIndicator.position.copy(playerPosition);
+                // Position arrow above player 1
+                this.playerIndicator.position.copy(player1Position);
                 this.playerIndicator.position.y += 2; // 2 units above player
                 
                 // Position text above arrow
-                this.playerIndicatorText.position.copy(playerPosition);
+                this.playerIndicatorText.position.copy(player1Position);
                 this.playerIndicatorText.position.y += 4; // 4 units above player
                 
                 // Make indicators face camera
                 this.playerIndicator.quaternion.copy(this.camera.quaternion);
                 this.playerIndicatorText.quaternion.copy(this.camera.quaternion);
+            }
+
+            // Update player 2 indicator positions in two-player mode
+            if (GameSettings.getInstance().isTwoPlayer && this.playerIndicator2 && this.playerIndicatorText2 && this.players.length > 1) {
+                const player2Position = this.players[1].getPosition();
+                
+                // Position arrow above player 2
+                this.playerIndicator2.position.copy(player2Position);
+                this.playerIndicator2.position.y += 2; // 2 units above player
+                
+                // Position text above arrow
+                this.playerIndicatorText2.position.copy(player2Position);
+                this.playerIndicatorText2.position.y += 4; // 4 units above player
+                
+                // Make indicators face camera
+                this.playerIndicator2.quaternion.copy(this.camera.quaternion);
+                this.playerIndicatorText2.quaternion.copy(this.camera.quaternion);
             }
             
             if (this.countdownTimer >= this.countdownInterval) {
@@ -686,6 +748,14 @@ export class PlayState implements GameState {
                     }
                     if (this.playerIndicatorText) {
                         this.playerIndicatorText.visible = false;
+                    }
+                    if (GameSettings.getInstance().isTwoPlayer) {
+                        if (this.playerIndicator2) {
+                            this.playerIndicator2.visible = false;
+                        }
+                        if (this.playerIndicatorText2) {
+                            this.playerIndicatorText2.visible = false;
+                        }
                     }
                     // Start the music
                     this.musicSystem.play();

@@ -599,7 +599,7 @@ export class PortalState implements GameState {
                     display: inline-block;
                 }
                 .instructions {
-                    font-size: 20rem;
+                    font-size: 30rem;
                     color: #000000;
                     text-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.5);
                 }
@@ -610,7 +610,7 @@ export class PortalState implements GameState {
                 }
             </style>
             <div class="title">Bi-Plane Panic</div>
-            <div class="instructions">WASD to move.</br>Space = Button A</br>Enter = Button B</div>
+            <div class="instructions">${this.isMobileDevice() ? 'Use touch controls to move' : 'WASD to move'}.</br>${this.isMobileDevice() ? 'Button A' : 'Space'} = Shoot</div>
             <div class="call-to-action">Move your red plane to the right to play</div>
         `;
     }

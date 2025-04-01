@@ -18,7 +18,7 @@ export class MenuState implements GameState {
     private menuContainer: HTMLElement = document.createElement('div');
     private uiContainer: HTMLElement;
     private selectedOption: number = 0;
-    private options: string[] = ['1 Player', '2 Player', 'Toggle Fullscreen'];
+    private options: string[] = this.isMobileDevice() ? ['1 Player', '2 Player', 'Toggle Fullscreen'] : ['Start Game', 'Toggle Fullscreen'] ;
     private keyboardHandler!: KeyboardHandler;
     private screenControlHandler!: ScreenControlHandler;
     private joypadHandler!: JoypadInputHandler;
@@ -344,5 +344,9 @@ export class MenuState implements GameState {
 
     setGameStateManager(manager: GameStateManager): void {
         this.gameStateManager = manager;
+    }
+
+    private isMobileDevice(): boolean {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 } 

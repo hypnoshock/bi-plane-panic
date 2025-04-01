@@ -180,8 +180,8 @@ fullscreenButton.addEventListener('click', toggleFullscreen);
 const muteButton = document.createElement('button');
 muteButton.style.cssText = `
     position: absolute;
-    bottom: 20rem;
-    right: 20rem;
+    top: 20rem;
+    right: ${isMobileDevice() ? '180rem' : '100rem'};
     width: ${isMobileDevice() ? '120rem' : '60rem'};
     height: ${isMobileDevice() ? '120rem' : '60rem'};
     background: rgba(0, 0, 0, 0.5);
